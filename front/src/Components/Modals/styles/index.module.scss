@@ -18,7 +18,7 @@
     }
     .modal_container {
         margin-top: 10vh;
-        height: 15vh;
+        min-height: 15vh;
         max-height: 85vh;
         border-radius: 15px;
         animation: fadeIn .4s;

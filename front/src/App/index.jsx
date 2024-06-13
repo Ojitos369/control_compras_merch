@@ -5,7 +5,12 @@ import { Theme } from '../Components/Theme';
 import { Base } from '../Pages/Base';
 import { Index } from '../Pages/Index';
 import { Test } from '../Pages/Test';
-import { Route, Routes, Navigate } from 'react-router-dom';
+
+import { Users } from '../Pages/Users';
+import { Login } from '../Pages/Users/Login';
+import { Register } from '../Pages/Users/Register';
+
+import { Route, Routes } from 'react-router-dom';
 
 import { store } from './store';
 import { Provider } from "react-redux";
@@ -38,6 +43,13 @@ function AppUI() {
                     {/* -----------   Index   ----------- */}
                     <Route path="" element={ <Index /> } />
                     {/* -----------   /Index   ----------- */}
+
+                    {/* -----------   Users   ----------- */}
+                    <Route path="users" element={ <Users /> } >
+                        <Route path="login" element={ <Login /> } />
+                        <Route path="register" element={ <Register /> } />
+                    </Route>
+                    {/* -----------   /Users   ----------- */}
                 </Route>
                 {/* -----------   /Base   ----------- */}
 

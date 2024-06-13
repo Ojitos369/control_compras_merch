@@ -108,6 +108,22 @@ const AnimateRemove = props => {
     )
 }
 
+// -----------------------------------   UNIQUES   ----------------------------------- //
+const CcmLogo = props => {
+    const stroke = props.stroke || '#000000';
+    return (
+        <svg xmlns="http://www.w3.org/2000/svg" 
+            xlink="http://www.w3.org/1999/xlink"
+            krita="http://krita.org/namespaces/svg/krita"
+            sodipodi="http://sodipodi.sourceforge.net/DTD/sodipodi-0.dtd"
+            width="737.28pt"
+            height="737.28pt"
+            viewBox="0 0 737.28 737.28">
+        <defs/>
+        <path id="shape0" transform="translate(21.5306471714755, 351.359998036623)" fill="none" stroke={stroke} strokeWidth="28.8" strokeLinecap="square" strokeLinejoin="bevel" d="M151.269 0C100.665 0 67.5478 8.94226 38.9494 51.84C29.5751 65.9014 12.4537 73.1513 4.38935 89.28C-10.5282 119.115 16.4739 165.289 27.4294 187.2C35.9681 204.278 53.1591 234.625 73.5094 244.8C97.5637 256.827 137.029 256.32 165.669 256.32" nodetypes="cccccc"/><path id="shape1" transform="translate(175.006142873094, 368.639997940063)" fill="none" stroke={stroke} strokeWidth="28.8" strokeLinecap="square" strokeLinejoin="bevel" d="M98.5939 0C-5.04624 0 -29.9757 121.475 38.1139 155.52C66.8118 169.869 83.7163 168.719 110.114 155.52C113.662 153.746 118.754 154.208 118.754 149.76" nodetypes="cccc"/><path id="shape2" transform="translate(267.839998503327, 415.221701620834)" fill="none" stroke={stroke} strokeWidth="28.8" strokeLinecap="square" strokeLinejoin="bevel" d="M0 36.9383C0 -6.50349 57.1506 -5.0464 83.52 8.1383C87.5647 10.1606 100.919 11.1373 103.68 13.8983C114.549 24.7676 104.465 113.128 97.92 126.218C93.4287 135.201 88.2994 175.178 80.64 175.178" nodetypes="ccccc"/><path id="shape3" transform="translate(380.15999787569, 427.434545571456)" fill="none" stroke={stroke} strokeWidth="28.8" strokeLinecap="square" strokeLinejoin="bevel" d="M0 39.1255C0 20.2618 60.2346 -7.07727 77.76 1.68545C86.8113 6.2111 93.971 22.5875 97.92 30.4855C117.925 70.4962 48.96 116.584 48.96 177.365" nodetypes="cccc"/><path id="shape4" transform="translate(480.959997312427, 416.386666691217)" fill="none" stroke={stroke} strokeWidth="28.8" strokeLinecap="square" strokeLinejoin="bevel" d="M0 47.2933C0 11.931 88.1822 -9.41559 115.2 4.09333C153.859 23.4226 154.335 95.7441 138.24 127.933C128.54 147.333 70.2516 211.453 54.72 211.453" nodetypes="cccc"/><path id="shape5" transform="translate(169.919999050498, 610.113200406253)" fill="none" stroke={stroke} strokeWidth="28.8" strokeLinecap="square" strokeLinejoin="bevel" d="M374.4 6.2068C365.4 6.2068 354.952 17.4895 345.6 20.6068C326.358 27.0208 242.942 33.4275 221.76 26.3668C210.066 22.4687 191.75 25.762 181.44 20.6068C130.643 -4.79184 61.1351 0.446796 0 0.446796" nodetypes="ccccc"/><path id="shape6" transform="translate(150.936215181163, 590.399996700883)" fill="none" stroke={stroke} strokeWidth="28.8" strokeLinecap="square" strokeLinejoin="bevel" d="M62.1838 14.4C-62.1853 14.4 28.0167 155.324 90.9838 123.84C104.287 117.188 124.672 96.7838 131.304 83.52C137.016 72.0957 153.799 56.5095 145.704 40.32C132.619 14.1508 76.598 0 50.6638 0" nodetypes="ccccc"/><path id="shape7" transform="translate(442.558947002451, 610.55999658823)" fill="none" stroke={stroke} strokeWidth="28.8" strokeLinecap="square" strokeLinejoin="bevel" d="M44.1611 20.16C11.3617 20.16 -14.8645 70.5744 9.60105 95.04C14.1878 99.6267 46.0008 95.04 52.8011 95.04C62.4041 95.04 84.6653 99.2679 93.1211 95.04C121.385 80.908 135.003 28.141 96.001 8.64C79.127 0.202964 58.8981 0 38.4011 0" nodetypes="cccccc"/>
+        </svg>
+    )
+}
 
 // -----------------------------------   SIMPLE   ----------------------------------- //
 const Play = props => {
@@ -161,12 +177,30 @@ const Moon = props => {
             />
     )
 }
+const ChevronsLeft = props => {
+    const name = 'chevrons_left';
+    const d1="M233.4 278.6c-12.5-12.5-12.5-32.8 0-45.3l192-192c12.5-12.5 32.8-12.5 45.3 0s12.5 32.8 0 45.3L301.3 256 470.6 425.4c12.5 12.5 12.5 32.8 0 45.3s-32.8 12.5-45.3 0l-192-192z";
+    const d2="M41.4 278.6c-12.5-12.5-12.5-32.8 0-45.3l192-192c12.5-12.5 32.8-12.5 45.3 0s12.5 32.8 0 45.3L109.3 256 278.6 425.4c12.5 12.5 12.5 32.8 0 45.3s-32.8 12.5-45.3 0l-192-192z";
+    return (
+        <GeneralDoble
+            name={name}
+            d1={d1}
+            d2={d2}
+            {...props}
+            />
+    )
+}
 
 export { 
     AnimateEdit,
     AnimateRemove,
+
+    CcmLogo,
+
     Play,
     Pause,
+
     Sun,
     Moon,
+    ChevronsLeft,
  };

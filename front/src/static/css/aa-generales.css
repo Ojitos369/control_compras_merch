@@ -171,3 +171,7 @@ body::-webkit-scrollbar {
     background: var(--my-white);
     color: var(--my-dark);
 }
+
+.my-input {
+    
+}

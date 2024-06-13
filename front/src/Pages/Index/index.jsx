@@ -1,9 +1,8 @@
-import { useMemo } from 'react';
+import { useMemo, useEffect } from 'react';
 import { useStates } from '../../Hooks/useStates';
 import { ModalThemeChanged } from '../../Components/Modals/ModalThemeChanged';
 
-import './styles/index.module.css';
-import { useEffect } from 'react';
+import styles from './styles/index.module.scss';
 
 const Index = props => {
     const { ls, lf, s, f } = useStates();
@@ -15,7 +14,7 @@ const Index = props => {
     }, []);
     return (
         <>
-            <div className='flex flex-wrap justify-center'>
+            <div className='flex w-full flex-wrap justify-center'>
                 <h2 className={`text-center w-1/3 mt-3 font-bold text-3xl ${theme === 'black' ? 'text-white' : 'text-black'} reflejo`}
                 >
                     Actual theme: {theme}

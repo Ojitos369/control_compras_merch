@@ -2,6 +2,7 @@ import { useEffect } from 'react';
 import { cambiarThema } from '../Core/helper';
 import { Theme } from '../Components/Theme';
 
+import { Base } from '../Pages/Base';
 import { Index } from '../Pages/Index';
 import { Test } from '../Pages/Test';
 import { Route, Routes, Navigate } from 'react-router-dom';
@@ -32,21 +33,16 @@ function AppUI() {
         <div className={`text-[var(--my-minor)]`}>
             <BgTheme />
             <Routes>
-                {/* -----------   Index   ----------- */}
-                <Route
-                    path="/"
-                    element={
-                        <Index />
-                    }
-                />
-                {/* -----------   /Index   ----------- */}
+                {/* -----------   Base   ----------- */}
+                <Route path="" element={ <Base /> } >
+                    {/* -----------   Index   ----------- */}
+                    <Route path="" element={ <Index /> } />
+                    {/* -----------   /Index   ----------- */}
+                </Route>
+                {/* -----------   /Base   ----------- */}
+
                 {/* -----------   Test   ----------- */}
-                <Route
-                    path="test"
-                    element={
-                        <Test />
-                    }
-                />
+                <Route path="test" element={ <Test /> } />
                 {/* -----------   /Test   ----------- */}
 
                 {/* -----------   404   ----------- */}

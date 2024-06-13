@@ -1,6 +1,6 @@
 import { createSlice } from "@reduxjs/toolkit";
 
-const appName = "reactAppName";
+const appName = "ccm.ojitos369.com";
 
 const fs = createSlice({
     name: "fs",

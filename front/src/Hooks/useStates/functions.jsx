@@ -25,7 +25,7 @@ const useF = props => {
             u2('loadings', 'users', 'login', true);
 
             const end = 'users/login/';
-            const data = s.menu?.login;
+            const data = s.users?.login?.form || {};
             u2('menu', 'login', 'error', '');
 
             miAxios.post(end, data)
@@ -74,7 +74,27 @@ const useF = props => {
             if (s.loadings?.users?.register) return;
             u2('loadings', 'users', 'register', true);
 
+            const end = 'users/register/';
             const data = s.users?.register?.form || {};
+
+            miAxios.post(end, data)
+            .then(response => {
+                const message = response.data.message;
+                general.notificacion({
+                    mode: 'success',
+                    title: 'Registrado con exito',
+                    message: message || "Registrado con exito"
+                });
+            }).catch(error => {
+                const message = error.response.data.message;
+                general.notificacion({
+                    mode: 'danger',
+                    title: 'Error al registrar',
+                    message: message || "Error en el registro",
+                });
+            }).finally(() => {
+                u2('loadings', 'users', 'register', false);
+            });
         },
     }
 
@@ -89,6 +109,13 @@ const useF = props => {
                 console.log(err);
             });
         }
+    }
+
+    const general = {
+        notificacion: props => {
+            u1("general", "notification", props);
+            u2("modals", "general", "notification", true);
+        },
     }
 
     // u[0-9]
@@ -123,7 +150,7 @@ const useF = props => {
         d(ff.u9({f0, f1, f2, f3, f4, f5, f6, f7, f8, f9, value}));
     }
 
-    return { u0, u1, u2, u3, u4, u5, u6, u7, u8, u9, app, users };
+    return { u0, u1, u2, u3, u4, u5, u6, u7, u8, u9, app, users, general };
 }
 
 export { useF };

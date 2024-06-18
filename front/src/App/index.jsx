@@ -16,6 +16,8 @@ import { store } from './store';
 import { Provider } from "react-redux";
 import { useStates } from '../Hooks/useStates';
 
+import { GeneralNotification } from '../Components/Modals/general/GeneralNotification';
+
 
 const BgTheme = () => {
     const { ls } = useStates();
@@ -28,7 +30,7 @@ const BgTheme = () => {
 }
 
 function AppUI() {
-    const { ls } = useStates();
+    const { ls, s } = useStates();
 
     useEffect(() => {
         cambiarThema(ls?.theme);
@@ -60,8 +62,10 @@ function AppUI() {
                 {/* -----------   404   ----------- */}
                 <Route path="*/" element={<div className='text-danger h1 text-center mt-5'>404 Not Found</div>} />
                 {/* -----------   /404   ----------- */}
-
             </Routes>
+
+            {!!s.modals?.general?.notification &&
+            <GeneralNotification />}
         </div>
     );
 }

@@ -149,6 +149,12 @@ class FullApi(BaseApi):
         super().__init__(**kwargs)
         self.post = self.get = self.put = self.patch = self.delete = self.gen
 
+
+class NoSession:
+    def validate_session(self):
+        pass
+
+
 """ 
 
 """

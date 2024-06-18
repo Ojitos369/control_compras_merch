@@ -1,4 +1,4 @@
-import { useMemo } from 'react';
+import { useEffect, useMemo } from 'react';
 import { useStates } from '../../../Hooks/useStates';
 import { Link } from 'react-router-dom';
 
@@ -14,10 +14,18 @@ const Register = props => {
         { key: 'nombre', label: 'Nombre', type: 'text', value: data.nombre },
         { key: 'paterno', label: 'Apellido Paterno', type: 'text', value: data.paterno },
         { key: 'materno', label: 'Apellido Materno', type: 'text', value: data.materno },
-        { key: 'user', label: 'Usuario', type: 'text', value: data.user, required: true },
-        { key: 'passwd', label: 'Contraseña', type: 'password', value: data.passwd, required: true },
-        { key: 'confirmPasswd', label: 'Confirmar Contraseña', type: 'password', value: data.confirmPasswd },
-        { key: 'correo', label: 'Correo', type: 'email', value: data.correo, required: true },
+        { key: 'user', label: 'Usuario', type: 'text', value: data.user, 
+            required: true, errorMessage: !data.user && 'Este Campo es requerido'
+        },
+        { key: 'passwd', label: 'Contraseña', type: 'password', value: data.passwd, 
+            required: true, errorMessage: !data.passwd && 'Este Campo es requerido'
+        },
+        { key: 'confirmPasswd', label: 'Confirmar Contraseña', type: 'password', value: data.confirmPasswd,
+            required: true, errorMessage: !!data.passwd ? (data.passwd === data.confirmPasswd ? '' : 'Las contraseñas no coinciden') : ''
+        },
+        { key: 'correo', label: 'Correo', type: 'email', value: data.correo, 
+            required: true, errorMessage: !data.correo && 'Este Campo es requerido'
+        },
         { key: 'telefono', label: 'Teléfono', type: 'tel', value: data.telefono },
         { key: 'fecha_nacimiento', label: 'Fecha de Nacimiento', type: 'date', value: data.fecha_nacimiento },
     ], [data]);
@@ -34,8 +42,12 @@ const Register = props => {
     const registrarse = e => {
         if (!!e) e.preventDefault();
         if (!validForm) return;
-        console.log('Registrarse');
+        f.users.register();
     }
+
+    useEffect(() => {
+        f.u2('users', 'register', 'form', {});
+    }, []);
 
     return (
         <div className="flex justify-center flex-wrap items-center">
@@ -50,6 +62,7 @@ const Register = props => {
                                 value={item.value || ''}
                                 onChange={e => upgradeData(item.key, e.target.value)}
                                 />
+                            {item.errorMessage && <small className={`${gs.dangerError}`}>{item.errorMessage}</small>}
                         </div>
                     </div>
                 ))}

@@ -115,6 +115,10 @@ class BaseApi(APIView):
         elif self.response_mode == 'json':
             return Response(self.response, status=self.status)
 
+    def send_me_error(self, msg):
+        error = Exception(msg)
+        self.ce.show_error(error, send_email=True)
+
 
 class PostApi(BaseApi):
     def post(self, request, **kwargs):

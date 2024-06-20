@@ -14,37 +14,6 @@ const MenuModal = props => {
     
     return (
         <div className={`${styles.menuModal} w-full flex flex-wrap justify-center`}>
-            {userLogged.token ?
-            <div className="w-10/12 md:w-5/12 px-4 py-3">
-                <Link
-                    className='w-full flex items-center justify-center py-2 px-4 rounded-md bg-red-500 hover:bg-red-600 text-white'
-                    to='/'
-                    onClick={f.login.closeSession}
-                    >
-                    <p className="">Logout</p>
-                </Link>
-            </div> :
-            <>
-                <div className="w-10/12 md:w-5/12 px-4 py-3">
-                    <Link
-                        className='w-full flex items-center justify-center py-2 px-4 rounded-md bg-blue-500 hover:bg-blue-600 text-white'
-                        to='/users/login'
-                        onClick={closeMemu}
-                        >
-                        <p className="">Login</p>
-                    </Link>
-                </div>
-                <div className="w-10/12 md:w-5/12 px-4 py-3">
-                    <Link
-                        className='w-full flex items-center justify-center py-2 px-4 rounded-md bg-yellow-500 hover:bg-yellow-600 text-white'
-                        to='/users/register'
-                        onClick={closeMemu}
-                        >
-                        <p className="">Register</p>
-                    </Link>
-                </div>
-            </>
-            }
             {userLogged.token && 
             <div className={`w-10/12 px-4 py-3`}>
                 <Link
@@ -73,6 +42,37 @@ const MenuModal = props => {
                     <p className="">Contacto</p>
                 </a>
             </div>
+            {userLogged.token ?
+            <div className="w-10/12 md:w-5/12 px-4 py-3">
+                <Link
+                    className='w-full flex items-center justify-center py-2 px-4 rounded-md bg-red-500 hover:bg-red-600 text-white'
+                    to='/'
+                    onClick={f.users.closeSession}
+                    >
+                    <p className="">Logout</p>
+                </Link>
+            </div> :
+            <>
+                <div className="w-10/12 md:w-5/12 px-4 py-3">
+                    <Link
+                        className='w-full flex items-center justify-center py-2 px-4 rounded-md bg-blue-500 hover:bg-blue-600 text-white'
+                        to='/users/login'
+                        onClick={closeMemu}
+                        >
+                        <p className="">Login</p>
+                    </Link>
+                </div>
+                <div className="w-10/12 md:w-5/12 px-4 py-3">
+                    <Link
+                        className='w-full flex items-center justify-center py-2 px-4 rounded-md bg-yellow-500 hover:bg-yellow-600 text-white'
+                        to='/users/register'
+                        onClick={closeMemu}
+                        >
+                        <p className="">Register</p>
+                    </Link>
+                </div>
+            </>
+            }
         </div>
     )
 }

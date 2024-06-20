@@ -3,7 +3,7 @@ import Swal from 'sweetalert2';
 import withReactContent from 'sweetalert2-react-content';
 import { useDispatch, useSelector } from "react-redux";
 import { f as ff } from "./fs";
-
+import { useNavigate } from "react-router-dom";
 
 const MySwal = withReactContent(Swal);
 
@@ -18,6 +18,7 @@ const useF = props => {
     const ls = useSelector(state => state.fs.ls);
     const s = useSelector(state => state.fs.s);
     const d = useDispatch();
+    const navigate = useNavigate();
 
     const users = {
         login: () => {
@@ -30,15 +31,27 @@ const useF = props => {
 
             miAxios.post(end, data)
             .then(response => {
-                const user = response.data.user;
+                console.log("response", response)
+                const user = response.data.usuario;
                 const token = user.token;
-                document.cookie = `tccm=${token}; max-age=18000; path=/`;
-                u2('menu', 'modal', 'mode', 'menu');
-                u1('menu', 'login', {});
+                const message = response.data.message;
+                document.cookie = `tccm=${token}; max-age=86400; path=/`;
                 u2('login', 'data', 'user', user);
                 u2('modals', 'header', 'showMenu', false);
+
+                navigate('/');
+                // general.notificacion({
+                //     mode: 'success',
+                //     title: 'Ingresado con exito',
+                //     message: message || "Registrado con exito"
+                // });
             }).catch(error => {
                 const message = error.response.data.message;
+                general.notificacion({
+                    mode: 'danger',
+                    title: 'Error al ingresar',
+                    message: message || "Error al iniciar sesiono"
+                });
                 u2('menu', 'login', 'error', message);
             }).finally(() => {
                 u2('loadings', 'users', 'login', false);
@@ -54,7 +67,7 @@ const useF = props => {
             }).catch(error => {
                 // console.log(error);
                 u2('login', 'data', 'user', {});
-                document.cookie = `tups=; max-age=0; path=/`;
+                document.cookie = `tccm=; max-age=0; path=/`;
             })
         },
         closeSession: () => {
@@ -80,6 +93,7 @@ const useF = props => {
             miAxios.post(end, data)
             .then(response => {
                 const message = response.data.message;
+                navigate('/users/login');
                 general.notificacion({
                     mode: 'success',
                     title: 'Registrado con exito',
@@ -96,6 +110,35 @@ const useF = props => {
                 u2('loadings', 'users', 'register', false);
             });
         },
+        validarCuenta: validacion => {
+            if (s.loadings?.users?.validarCuenta) return;
+            u2('loadings', 'users', 'validarCuenta', true);
+
+            const url = `users/validar_cuenta/`;
+            const data = {
+                "id_codigo": validacion
+            }
+
+            miAxios.post(url, data)
+            .then(response => {
+                navigate('/users/login');
+                const message = response.data.message;
+                general.notificacion({
+                    mode: 'success',
+                    title: 'Cuenta validada',
+                    message: message || "Cuenta validada"
+                });
+            }).catch(error => {
+                const message = error.response.data.message;
+                general.notificacion({
+                    mode: 'danger',
+                    title: 'Error al validar cuenta',
+                    message: message || "Error al validar cuenta"
+                });
+            }).finally(() => {
+                u2('loadings', 'users', 'validarCuenta', false);
+            });
+        }
     }
 
     const app = {

@@ -1,9 +1,10 @@
 .header {
+    border-bottom: 1px solid var(--my-minor);
+    margin-bottom: 10px;
     .logo_span {
         svg {
-            width: auto;
-            height: 50px;
+            width: 50px;
+            height: auto;
         }
     }
-
 }

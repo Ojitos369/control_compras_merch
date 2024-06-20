@@ -1,6 +1,7 @@
 import { useEffect, useMemo } from 'react';
 import { useStates } from '../../../Hooks/useStates';
 import { Link } from 'react-router-dom';
+import { DobleLoader } from '../../../Components/Loaders/DobleLoader';
 
 import styles from '../styles/index.module.scss';
 
@@ -9,6 +10,8 @@ const Register = props => {
     const { s, f, gs } = useStates();
 
     const data = useMemo(() => s.users?.register?.form || {}, [s.users?.register?.form]);
+
+    const registrando = useMemo(() => !!s.loadings?.users?.register, [s.loadings?.users?.register]);
 
     const items = useMemo(() => [
         { key: 'nombre', label: 'Nombre', type: 'text', value: data.nombre },
@@ -49,6 +52,7 @@ const Register = props => {
         f.u2('users', 'register', 'form', {});
     }, []);
 
+    if (registrando) return <DobleLoader />;
     return (
         <div className="flex justify-center flex-wrap items-center">
             <h1 className="w-full text-center text-2xl font-bold mb-5">Registro</h1>

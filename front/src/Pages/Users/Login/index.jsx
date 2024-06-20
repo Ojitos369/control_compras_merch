@@ -1,6 +1,7 @@
 import { useEffect, useMemo } from 'react';
 import { useStates } from '../../../Hooks/useStates';
 import { Link } from 'react-router-dom';
+import { Stair as StairLoading } from '../../../Components/Loaders/Stair';
 
 import styles from '../styles/index.module.scss';
 
@@ -8,6 +9,7 @@ const Login = props => {
     const { s, f, gs } = useStates();
 
     const data = useMemo(() => s.users?.login?.form || {}, [s.users?.login?.form]);
+    const ingresando = useMemo(() => !!s.loadings?.users?.login, [s.loadings?.users?.login]);
 
     const items = useMemo(() => [
         { key: 'user', label: 'Usuario/Correo', type: 'text', value: data.user, required: true },
@@ -32,6 +34,8 @@ const Login = props => {
     useEffect(() => {
         f.u2('users', 'login', 'form', {});
     }, []);
+
+    if (ingresando) return <StairLoading />;
 
     return (
         <div className="flex justify-center flex-wrap items-center">

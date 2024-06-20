@@ -6,9 +6,10 @@ import { Base } from '../Pages/Base';
 import { Index } from '../Pages/Index';
 import { Test } from '../Pages/Test';
 
-import { Users } from '../Pages/Users';
-import { Login } from '../Pages/Users/Login';
-import { Register } from '../Pages/Users/Register';
+import { Users as Users } from '../Pages/Users';
+import { Login as UsersLogin } from '../Pages/Users/Login';
+import { Register as UsersRegister } from '../Pages/Users/Register';
+import { ValidarCuenta as UsersValidarCuenta } from '../Pages/Users/ValidarCuenta';
 
 import { Route, Routes } from 'react-router-dom';
 
@@ -24,7 +25,7 @@ const BgTheme = () => {
     return (
         <>
             <div className={`wipeInDown full-page-container bg-my-${ls.theme}`}></div>
-            <Theme />
+            {/* <Theme /> */}
         </>
     )
 }
@@ -48,8 +49,9 @@ function AppUI() {
 
                     {/* -----------   Users   ----------- */}
                     <Route path="users" element={ <Users /> } >
-                        <Route path="login" element={ <Login /> } />
-                        <Route path="register" element={ <Register /> } />
+                        <Route path="login" element={ <UsersLogin /> } />
+                        <Route path="register" element={ <UsersRegister /> } />
+                        <Route path="validar_cuenta/:validacion" element={ <UsersValidarCuenta /> } />
                     </Route>
                     {/* -----------   /Users   ----------- */}
                 </Route>

@@ -73,4 +73,10 @@ class EmailTextSend(BaseMail):
         return True
 
 
+class GeneralTextMail(EmailTextSend):
+    def __init__(self, **kwargs):
+        self.email_subject = "Correo de prueba"
+        self.email_text = "Este es un correo de prueba"
+        super().__init__(**kwargs)
+
 

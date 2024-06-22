@@ -1,8 +1,11 @@
+import { Actions } from './Actions';
+import styles from './styles/index.module.scss';
+
 const Loaded = props => {
     return (
-        <p>
-            Loaded
-        </p>
+        <div className={`flex flex-wrap w-full ${styles.mainLoaded}`}>
+            <Actions />
+        </div>
     )
 }
 

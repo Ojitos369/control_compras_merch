@@ -31,11 +31,15 @@ const BgTheme = () => {
 }
 
 function AppUI() {
-    const { ls, s } = useStates();
+    const { ls, s, f } = useStates();
 
     useEffect(() => {
         cambiarThema(ls?.theme);
     }, [ls?.theme]);
+
+    useEffect(() => {
+        f.users.validateLogin();
+    }, [window.location.href]);
 
     return (
         <div className={`text-[var(--my-minor)]`}>

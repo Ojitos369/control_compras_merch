@@ -34,3 +34,4 @@ venv
 
 front/*.lock*
 front/*lock.*
+/static/images_c/*.*

@@ -6,6 +6,9 @@ import { f as ff } from "./fs";
 import { useNavigate } from "react-router-dom";
 
 const MySwal = withReactContent(Swal);
+const project_key = 'tccm';
+
+import { v4 as uuidv4 } from 'uuid';
 
 const link = 'http://localhost:8369/api/';
 axios.defaults.withCredentials = true
@@ -34,12 +37,11 @@ const useF = props => {
                 console.log("response", response)
                 const user = response.data.usuario;
                 const token = user.token;
-                const message = response.data.message;
-                document.cookie = `tccm=${token}; max-age=86400; path=/`;
+                document.cookie = `${project_key}=${token}; max-age=64800; path=/`;
                 u2('login', 'data', 'user', user);
                 u2('modals', 'header', 'showMenu', false);
-
                 navigate('/');
+                // const message = response.data.message;
                 // general.notificacion({
                 //     mode: 'success',
                 //     title: 'Ingresado con exito',
@@ -50,7 +52,7 @@ const useF = props => {
                 general.notificacion({
                     mode: 'danger',
                     title: 'Error al ingresar',
-                    message: message || "Error al iniciar sesiono"
+                    message: message || "Error al iniciar sesion"
                 });
                 u2('menu', 'login', 'error', message);
             }).finally(() => {
@@ -58,16 +60,18 @@ const useF = props => {
             });
         },
         validateLogin: () => {
-            const end = 'users/validate_login/';
-            // get tups cookie
+            const end = 'users/validar_sesion/';
+            console.log('validando sesion');
+            if (!document.cookie.includes(project_key)) return;
+
+            console.log('enviando validacion');
             miAxios.get(end)
             .then(response => {
-                const user = response.data.user;
+                const user = response.data.usuario;
                 u2('login', 'data', 'user', user);
             }).catch(error => {
                 // console.log(error);
-                u2('login', 'data', 'user', {});
-                document.cookie = `tccm=; max-age=0; path=/`;
+                users.closeSession();
             })
         },
         closeSession: () => {
@@ -78,9 +82,9 @@ const useF = props => {
             miAxios.get(end)
             .finally(() => {
                 u2('login', 'data', 'user', {});
-                document.cookie = 'tccm=; max-age=0; path=/';
-                u2('modals', 'header', 'showMenu', false);
+                document.cookie = `${project_key}=; max-age=0; path=/`;
                 u2('loadings', 'users', 'closeSession', false);
+                navigate('/users/login');
             });
         },
         register: () => {
@@ -159,6 +163,9 @@ const useF = props => {
             u1("general", "notification", props);
             u2("modals", "general", "notification", true);
         },
+        getUuid: () => {
+            return uuidv4();
+        }
     }
 
     // u[0-9]

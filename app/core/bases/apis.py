@@ -71,8 +71,33 @@ class BaseApi(APIView):
     def validate_session(self):
         request = self.request
         cookies = request.COOKIES
-        mi_cookie = get_d(cookies, 'miCookie', default='')
-        pln(mi_cookie)
+        mi_cookie = get_d(cookies, 'tccm', default='')
+        now = timezone.now()
+        query = """SELECT *
+                    FROM sesiones
+                    WHERE sesion = %s
+                    and caduca > %s
+                """
+        query_data = (mi_cookie, now)
+        r = self.conexion.consulta_asociativa(query, query_data)
+        if not r:
+            self.status = 401
+            raise self.MYE("Sesión no válida")
+        
+        if str(self.petition_ip) != str(r[0]['ip_origen']):
+            self.status = 401
+            raise self.MYE("Sesión no válida")
+        query = """SELECT *
+                    FROM usuarios
+                    WHERE id_usuario = %s
+                """
+        query_data = (r[0]['usuario_id'],)
+        r = self.conexion.consulta_asociativa(query, query_data)
+        if not r:
+            self.status = 401
+            raise self.MYE("Sesión no válida")
+        self.user = r[0]
+        self.user["token"] = mi_cookie
 
     def validar_permiso(self, usuarios_validos):
         pass

@@ -1,12 +1,13 @@
 # Python
 import os
 import json
+import uuid
 
 # User
 from app.core.bases.apis import PostApi, GetApi, get_d, pln
 
-class HelloWorld(GetApi):
+class GetNewId(GetApi):
     def main(self):
         self.response = {
-            'message': 'Hello World'
+            'id': str(uuid.uuid4())
         }

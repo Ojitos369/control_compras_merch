@@ -29,8 +29,9 @@ class Login(NoSession, PostApi):
         query = """SELECT *
                     FROM usuarios
                     WHERE lower(usuario) = %s
+                    or lower(correo) = %s
                 """
-        query_data = (user.lower(),)
+        query_data = (user.lower(), user.lower())
         r = self.conexion.consulta_asociativa(query, query_data)
         if not r:
             raise self.MYE("Error en los datos ingresados")
@@ -76,6 +77,7 @@ class Login(NoSession, PostApi):
         self.response = {
             "usuario": usuario,
         }
+
 
 class Register(NoSession, PostApi):
     def main(self):
@@ -189,7 +191,7 @@ class Register(NoSession, PostApi):
         }
 
 
-class ValidarCuenta(PostApi):
+class ValidarCuenta(NoSession, PostApi):
     def main(self):
         self.show_me()
         
@@ -246,3 +248,11 @@ class ValidarCuenta(PostApi):
             "message": "Usuario validado correctamente. Ya puede iniciar sesión."
         }
 
+
+class ValidarSesion(GetApi):
+    def main(self):
+        user = {**self.user}
+        user.pop("passwd")
+        self.response = {
+            "usuario": user
+        }

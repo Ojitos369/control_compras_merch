@@ -67,6 +67,12 @@ class BaseApi(APIView):
                 self.data = self.request.data
             except:
                 self.data = {}
+
+    def get_get_data(self):
+        data = self.request.query_params
+        self.data = {}
+        for key, value in data.items():
+            self.data[key] = value
     
     def validate_session(self):
         request = self.request
@@ -126,9 +132,12 @@ class BaseApi(APIView):
         self.request = request
         self.kwargs = kwargs
         self.get_client_ip()
+        if self.request.method in ('POST', 'PUT', 'PATCH'):
+            self.get_post_data()
+        elif self.request.method == 'GET':
+            self.get_get_data()
+
         try:
-            if self.request.method in ('POST', 'PUT', 'PATCH'):
-                self.get_post_data()
             self.validate_session()
             self.main()
         except Exception as e:

@@ -1,23 +1,15 @@
-import { useEffect } from 'react';
-import { cambiarThema } from '../Core/helper';
-import { Theme } from '../Components/Theme';
-
-import { Base } from '../Pages/Base';
-import { Index } from '../Pages/Index';
-import { Test } from '../Pages/Test';
-
-import { Users as Users } from '../Pages/Users';
-import { Login as UsersLogin } from '../Pages/Users/Login';
-import { Register as UsersRegister } from '../Pages/Users/Register';
-import { ValidarCuenta as UsersValidarCuenta } from '../Pages/Users/ValidarCuenta';
-
-import { Route, Routes } from 'react-router-dom';
-
-import { store } from './store';
-import { Provider } from "react-redux";
-import { useStates } from '../Hooks/useStates';
-
-import { GeneralNotification } from '../Components/Modals/general/GeneralNotification';
+import {
+    useMemo, useEffect,  
+    Route, Routes, 
+    Base, 
+    Index, 
+    Test, 
+    ComprasPage, ComprasNueva, 
+    Users, UsersLogin, UsersRegister, UsersValidarCuenta, UsersAccount, 
+    store, Provider, useStates, 
+    GeneralNotification, 
+    cambiarThema, 
+} from './imports';
 
 
 const BgTheme = () => {
@@ -25,13 +17,14 @@ const BgTheme = () => {
     return (
         <>
             <div className={`wipeInDown full-page-container bg-my-${ls.theme}`}></div>
-            {/* <Theme /> */}
         </>
     )
 }
 
 function AppUI() {
     const { ls, s, f } = useStates();
+
+    const userLogged = useMemo(() => s.login?.data?.user || {}, [s.login?.data?.user]);
 
     useEffect(() => {
         cambiarThema(ls?.theme);
@@ -44,36 +37,76 @@ function AppUI() {
     return (
         <div className={`text-[var(--my-minor)]`}>
             <BgTheme />
-            <Routes>
-                {/* -----------   Base   ----------- */}
-                <Route path="" element={ <Base /> } >
-                    {/* -----------   Index   ----------- */}
-                    <Route path="" element={ <Index /> } />
-                    {/* -----------   /Index   ----------- */}
-
-                    {/* -----------   Users   ----------- */}
-                    <Route path="users" element={ <Users /> } >
-                        <Route path="login" element={ <UsersLogin /> } />
-                        <Route path="register" element={ <UsersRegister /> } />
-                        <Route path="validar_cuenta/:validacion" element={ <UsersValidarCuenta /> } />
-                    </Route>
-                    {/* -----------   /Users   ----------- */}
-                </Route>
-                {/* -----------   /Base   ----------- */}
-
-                {/* -----------   Test   ----------- */}
-                <Route path="test" element={ <Test /> } />
-                {/* -----------   /Test   ----------- */}
-
-                {/* -----------   404   ----------- */}
-                <Route path="*/" element={<div className='text-danger h1 text-center mt-5'>404 Not Found</div>} />
-                {/* -----------   /404   ----------- */}
-            </Routes>
-
+            {userLogged.token ? <Logged /> : <NotLogged />}
             {!!s.modals?.general?.notification &&
             <GeneralNotification />}
         </div>
     );
+}
+
+const Logged = props => {
+    return (
+        <Routes>
+            {/* -----------   Test   ----------- */}
+            <Route path="test" element={ <Test /> } />
+            {/* -----------   /Test   ----------- */}
+
+            {/* -----------   Base   ----------- */}
+            <Route path="" element={ <Base /> } >
+                {/* -----------   Index   ----------- */}
+                <Route path="" element={ <Index /> } />
+                {/* -----------   /Index   ----------- */}
+
+                {/* -----------   Users   ----------- */}
+                <Route path="users" element={ <Users /> } >
+                    <Route path="account" element={ <UsersAccount /> } />
+                </Route>
+                {/* -----------   /Users   ----------- */}
+
+                {/* -----------   Compras   ----------- */}
+                <Route path="compras" element={ <ComprasPage /> } >
+                    <Route path="nueva" element={ <ComprasNueva /> } />
+                    {/* <Route path="validar_cuenta/:validacion" element={ <UsersValidarCuenta /> } /> */}
+                </Route>
+                {/* -----------   /Compras   ----------- */}
+
+                {/* -----------   404   ----------- */}
+                <Route path="*" element={<div className='text-danger h1 text-center mt-5'>404 Not Found</div>} />
+                {/* -----------   /404   ----------- */}
+            </Route>
+            {/* -----------   /Base   ----------- */}
+        </Routes>
+    )
+}
+
+const NotLogged = props => {
+    return (
+        <Routes>
+            {/* -----------   Test   ----------- */}
+            <Route path="test" element={ <Test /> } />
+            {/* -----------   /Test   ----------- */}
+
+            {/* -----------   Base   ----------- */}
+            <Route path="" element={ <Base /> } >
+                {/* -----------   Index   ----------- */}
+                <Route path="" element={ <Index /> } />
+                {/* -----------   /Index   ----------- */}
+
+                {/* -----------   Users   ----------- */}
+                <Route path="users" element={ <Users /> } >
+                    <Route path="login" element={ <UsersLogin /> } />
+                    <Route path="register" element={ <UsersRegister /> } />
+                    <Route path="validar_cuenta/:validacion" element={ <UsersValidarCuenta /> } />
+                </Route>
+                {/* -----------   /Users   ----------- */}
+
+                {/* -----------   404   ----------- */}
+                <Route path="*" element={<div className='text-danger h1 text-center mt-5'>404 Not Found</div>} />
+                {/* -----------   /404   ----------- */}
+            </Route>
+            {/* -----------   /Base   ----------- */}
+        </Routes>
+    )
 }
 
 function App(props) {

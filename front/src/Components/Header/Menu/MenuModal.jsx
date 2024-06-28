@@ -18,7 +18,7 @@ const MenuModal = props => {
             <div className={`w-10/12 px-4 py-3`}>
                 <Link
                     className='w-full flex items-center justify-center py-2 px-4 rounded-md bg-purple-500 hover:bg-purple-600 text-black'
-                    to='update'
+                    to='/compras/nueva/'
                     onClick={closeMemu}
                     >
                     <p className="">Nueva Compra</p>

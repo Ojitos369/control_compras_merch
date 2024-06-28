@@ -61,10 +61,10 @@ const useF = props => {
         },
         validateLogin: () => {
             const end = 'users/validar_sesion/';
-            console.log('validando sesion');
+            // console.log('validando sesion');
             if (!document.cookie.includes(project_key)) return;
 
-            console.log('enviando validacion');
+            // console.log('enviando validacion');
             miAxios.get(end)
             .then(response => {
                 const user = response.data.usuario;
@@ -168,6 +168,60 @@ const useF = props => {
         }
     }
 
+    const compras = {
+        subirFotoForm: e => {
+            const temp_file = document.getElementById('temp-file');
+            temp_file.files = null;
+            const end = 'compras/guardar_imagen/'
+            const formData = new FormData();
+            const name = s.compras?.actualCompra?.form?.id + '_' + general.getUuid();
+            const file = e.target.files[0];
+            const ext = file.name.split('.').pop();
+            formData.append('file', file, `${name}.${ext}`);
+            const config = {
+                headers: {
+                    'content-type': 'multipart/form-data',
+                },
+            };
+            miAxios.post(end, formData, config).then(response => {
+                // console.log(response.data);
+                const image = response.data.image;
+                if (image) {
+                    const images = s.compras?.actualCompra?.form?.images || [];
+                    image.index = images.length;
+                    u3('compras', 'actualCompra', 'form', 'images', [...images, image]);
+                }
+                
+                temp_file.files = null;
+            }).catch(err => {
+                console.log(err);
+            })
+
+            // remove files from temp_file
+            temp_file.files = null;
+        },
+        validarImagenesNoGuardadas: () => {
+            const end = 'compras/validar_imagenes_no_guardadas/';
+            miAxios.get(end)
+        },
+    }
+
+    const dd = {
+        removeDragData: e => {
+            if (e.dataTransfer.items) {
+                e.dataTransfer.items.clear();
+            } else {
+                e.dataTransfer.clearData();
+            }
+        },
+        preventOver: (e) => {
+            e.preventDefault();
+        },
+        preventLeave: e => {
+            e.preventDefault();
+        }
+    }
+
     // u[0-9]
     const u0 = (f0, value) => {
         d(ff.u0({f0, value}));
@@ -200,7 +254,7 @@ const useF = props => {
         d(ff.u9({f0, f1, f2, f3, f4, f5, f6, f7, f8, f9, value}));
     }
 
-    return { u0, u1, u2, u3, u4, u5, u6, u7, u8, u9, app, users, general };
+    return { u0, u1, u2, u3, u4, u5, u6, u7, u8, u9, app, users, general, compras, dd };
 }
 
 export { useF };

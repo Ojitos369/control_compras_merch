@@ -1,3 +1,5 @@
+@import "../../../../static/css/response.scss";
+// sm, md, lg, xl, xxl
 .nueva_compra_container {
     .images {
         .images_show {
@@ -33,6 +35,36 @@
             cursor: pointer;
             &:hover {
                 background-color: #0a0;
+            }
+        }
+    }
+    .items {
+        .item_container {
+            padding: 5px 20px;
+            width: 100vw;
+            display: flex;
+            justify-content: space-around;
+            .item_form {
+                position: relative;
+                width: 80%;
+                @include sm {
+                    width: 50%;
+                }
+                @include md {
+                    width: 40%;
+                }
+                @include lg {
+                    width: 30%;
+                }
+                border-radius: 15px;
+                border: 1px solid var(--my-minor);
+                .item_remove {
+                    position: relative;
+                    width: 50px;
+                    height: 50px;
+                    top: 50px;
+                    right: 50px;
+                }
             }
         }
     }

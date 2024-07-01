@@ -222,6 +222,10 @@ const useF = props => {
         }
     }
 
+    const cloneO = obj => {
+        return JSON.parse(JSON.stringify(obj))
+    }
+
     // u[0-9]
     const u0 = (f0, value) => {
         d(ff.u0({f0, value}));
@@ -254,7 +258,7 @@ const useF = props => {
         d(ff.u9({f0, f1, f2, f3, f4, f5, f6, f7, f8, f9, value}));
     }
 
-    return { u0, u1, u2, u3, u4, u5, u6, u7, u8, u9, app, users, general, compras, dd };
+    return { u0, u1, u2, u3, u4, u5, u6, u7, u8, u9, app, users, general, compras, dd, cloneO };
 }
 
 export { useF };

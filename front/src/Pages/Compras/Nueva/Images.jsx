@@ -26,7 +26,7 @@ const Images = props => {
     }, [images]);
 
     return (
-        <div className={`${styles.images} w-full justify-center flex flex-wrap`}>
+        <div className={`${styles.images} w-full md:w-1/2 justify-center flex flex-wrap`}>
             <input 
                 type="file" 
                 name="temp-file" 
@@ -36,6 +36,7 @@ const Images = props => {
                 />
             <div 
                 className={`${styles.images_show} manita`}
+                id="images_show"
                 htmlFor="temp-file"
                 onDragOver={f.dd.preventOver}
                 onDragLeave={f.dd.preventLeave}

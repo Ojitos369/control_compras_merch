@@ -25,7 +25,7 @@ const Nueva = props => {
         <section className={`flex flex-row flex-wrap justify-center w-full ${styles.nueva_compra_container} py-4`}>
             <Images s={s} f={f} styles={styles}/>
             <Generales s={s} f={f} gs={gs} styles={styles} data={data}/>
-            <Articulos s={s} f={f} gs={gs} styles={styles} data={data.items || [{}]}/>
+            <Articulos s={s} f={f} gs={gs} styles={styles} data={data.items || [{},{},{}]}/>
         </section>
     )
 }

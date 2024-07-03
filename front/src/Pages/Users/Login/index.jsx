@@ -12,8 +12,8 @@ const Login = props => {
     const ingresando = useMemo(() => !!s.loadings?.users?.login, [s.loadings?.users?.login]);
 
     const items = useMemo(() => [
-        { key: 'user', label: 'Usuario/Correo', type: 'text', value: data.user, required: true },
-        { key: 'passwd', label: 'Contraseña', type: 'password', value: data.passwd, required: true },
+        { key: 'user', label: 'Usuario/Correo', type: 'text', value: data.user, id: "user_login_field",  required: true },
+        { key: 'passwd', label: 'Contraseña', type: 'password', value: data.passwd, id: "passwd_login_field",  required: true },
     ], [data]);
 
     const validForm = useMemo(() => {
@@ -33,6 +33,9 @@ const Login = props => {
 
     useEffect(() => {
         f.u2('users', 'login', 'form', {});
+        const ele = document.getElementById('user_login_field');
+        if (!!ele) ele.focus();
+        
     }, []);
 
     if (ingresando) return <StairLoading />;
@@ -48,6 +51,7 @@ const Login = props => {
                             <input
                                 type={item.type}
                                 value={item.value || ''}
+                                id={item.id || item.key+'_login_field_'+index}
                                 onChange={e => upgradeData(item.key, e.target.value)}
                                 />
                         </div>

@@ -56,11 +56,16 @@ const Articulos = props => {
     };
 
     return (
-        <div className={`${styles.items} w-full flex flex-wrap px-4 justify-center`}>
+        <div className={`${styles.items} w-full flex flex-wrap justify-around`}>
             <h2 className="w-full my-3 px-5">Articulos <button className="manita" onClick={addNew}>Add</button></h2>
             {items.map((item, index) => {
                 return (
                     <div className={`${styles.item_container}`} key={`item_${index}`}>
+                        <button 
+                            className={`${styles.item_remove}`}
+                            onClick={() => removeItem(index)}>
+                            <RemoveStash />
+                        </button>
                         <div className={`${styles.item_form}`}>
                             {fields.map((field, i) => {
                                 const value = item[field.name]
@@ -79,11 +84,6 @@ const Articulos = props => {
                                     </div>
                                 )
                             })}
-                            <button 
-                                className={`${styles.item_remove}`}
-                                onClick={() => removeItem(index)}>
-                                <RemoveStash />
-                            </button>
                         </div>
                     </div>
                 )

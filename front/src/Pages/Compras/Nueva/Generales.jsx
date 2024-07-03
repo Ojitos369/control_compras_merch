@@ -21,7 +21,7 @@ const Generales = props => {
     }
 
     return (
-        <div className={`${styles.generales} w-full flex flex-wrap px-4 justify-center`}>
+        <div className={`${styles.generales} w-full md:w-1/2 flex flex-wrap px-4 justify-center`}>
             <h2 className="w-full mt-3">Datos Generales</h2>
             {fields.map((item, index) => (
                 <div key={index} className={`${gs.my_input} w-full`}>

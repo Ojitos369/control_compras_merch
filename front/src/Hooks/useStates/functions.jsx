@@ -204,6 +204,33 @@ const useF = props => {
             const end = 'compras/validar_imagenes_no_guardadas/';
             miAxios.get(end)
         },
+        guardarCompra: () => {
+            if (s.loadings?.compras?.guardarCompra) return;
+            u2('loadings', 'compras', 'guardarCompra', true);
+
+            const end = 'compras/guardar_compra/';
+            const data = s.compras?.actualCompra?.form || {};
+
+            miAxios.post(end, data)
+            .then(response => {
+                const message = response.data.message;
+                general.notificacion({
+                    mode: 'success',
+                    title: 'Guardado con exito',
+                    message: message || "Guardado con exito"
+                });
+                navigate('/');
+            }).catch(error => {
+                const message = error.response.data.message;
+                general.notificacion({
+                    mode: 'danger',
+                    title: 'Error al guardar',
+                    message: message || "Error al guardar"
+                });
+            }).finally(() => {
+                u2('loadings', 'compras', 'guardarCompra', false);
+            });
+        }
     }
 
     const dd = {

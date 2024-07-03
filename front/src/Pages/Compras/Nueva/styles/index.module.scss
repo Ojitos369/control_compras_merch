@@ -46,6 +46,16 @@
         }
     }
     .items {
+        .addButton {
+            background: #10861a;
+            padding: 3px 14px;
+            border-radius: 8px;
+            width: 120px;
+            margin-left: 50px;
+            &:hover {
+                background: #0a6c13;
+            }
+        }
         .item_container {
             padding: 5px 20px;
             width: 80vw;
@@ -78,6 +88,7 @@
                 position: relative;
                 top: 30px;
                 right: -45%;
+                z-index: 10;
                 svg {
                     width: 30px;
                     height: 30px;
@@ -86,6 +97,31 @@
                         fill: var(--my-minor);
                     }
                 }
+            }
+        }
+    }
+    .resumen {
+        display: flex;
+        flex-wrap: wrap;
+        justify-content: space-around;
+        align-items: center;
+        width: 80vw;
+        p, div {
+            width: 30%;
+        }
+        .button {
+            width: 80%;
+            padding: 4px 10px;
+            border-radius: 8px;
+            &.guardar {
+                background: #10861a;
+                cursor: pointer;
+                &:hover {
+                    background: #0a6c13;
+                }
+            }
+            &.guardar_disabled {
+                border: 1px solid #888;
             }
         }
     }

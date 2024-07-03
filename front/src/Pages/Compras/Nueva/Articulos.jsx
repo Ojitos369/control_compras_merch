@@ -1,5 +1,6 @@
 import { useMemo } from "react";
 import { RemoveStash } from "../../../Components/Icons";
+import { showCurrency } from "../../../Core/helper";
 
 const Articulos = props => {
     const { s, f, styles, gs, data } = props;
@@ -56,21 +57,26 @@ const Articulos = props => {
     };
 
     return (
-        <div className={`${styles.items} w-full flex flex-wrap justify-around`}>
-            <h2 className="w-full my-3 px-5">Articulos <button className="manita" onClick={addNew}>Add</button></h2>
+        <div className={`${styles.items} w-full flex flex-wrap mb-12 justify-around`}>
+            <h2 className="w-full my-3 px-5">Articulos <button className={`${styles.addButton} `} onClick={addNew}>Add</button></h2>
             {items.map((item, index) => {
                 return (
                     <div className={`${styles.item_container}`} key={`item_${index}`}>
                         <button 
                             className={`${styles.item_remove}`}
-                            onClick={() => removeItem(index)}>
-                            <RemoveStash />
+                            >
+                            <RemoveStash 
+                                onClick={() => removeItem(index)}
+                            />
                         </button>
                         <div className={`${styles.item_form}`}>
+                            <p className="w-full text-center mb-0 mt-2 text-xl font-bold">
+                                Total: {showCurrency(item.cantidad * item.precio)}
+                            </p>
                             {fields.map((field, i) => {
                                 const value = item[field.name]
                                 return (
-                                    <div key={`field_${index}_${i}`} className={`${gs.my_input} w-full`}>
+                                    <div key={`field_${index}_${i}`} className={`${gs.my_input} w-full mt-0 mb-3`}>
                                             <div className={`${gs.input_content}`}>
                                             <label htmlFor={field.name}>{field.label}</label>
                                             <input

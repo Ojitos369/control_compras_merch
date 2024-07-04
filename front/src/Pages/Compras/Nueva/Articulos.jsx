@@ -58,7 +58,7 @@ const Articulos = props => {
 
     return (
         <div className={`${styles.items} w-full flex flex-wrap mb-12 justify-around`}>
-            <h2 className="w-full my-3 px-5">Articulos <button className={`${styles.addButton} `} onClick={addNew}>Add</button></h2>
+            <h2 className="w-10/12 mt-8 px-5">Articulos <button className={`${styles.addButton} `} onClick={addNew}>Add</button></h2>
             {items.map((item, index) => {
                 return (
                     <div className={`${styles.item_container}`} key={`item_${index}`}>

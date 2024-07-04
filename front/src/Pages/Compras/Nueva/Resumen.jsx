@@ -45,7 +45,10 @@ const Resumen = props => {
                 <span className='font-bold'>Total:</span> {showCurrency(total)}
             </p>
             <div>
-                <button className={`${styles.button} ${valid ? styles.guardar : styles.guardar_disabled}`}>
+                <button 
+                    className={`${styles.button} ${valid ? styles.guardar : styles.guardar_disabled}`}
+                    onClick={save}
+                    >
                     Guardar
                 </button>
             </div>

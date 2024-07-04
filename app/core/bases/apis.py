@@ -21,6 +21,7 @@ class BaseApi(APIView):
     def __init__(self):
         self.status = 200
         self.response = {}
+        self.data = {}
         self.ce = ce
         self.MYE = MYE
         self.response_mode = 'json'
@@ -60,20 +61,21 @@ class BaseApi(APIView):
             }
 
     def get_post_data(self):
+        data = {}
         try:
-            self.data = json.loads(self.request.body.decode('utf-8'))
+            data = json.loads(self.request.body.decode('utf-8'))
         except:
             try:
-                self.data = self.request.data
+                data = self.request.data
             except:
-                self.data = {}
+                data = {}
+        self.data = {**self.data, **data}
 
     def get_get_data(self):
         data = self.request.query_params
-        self.data = {}
         for key, value in data.items():
             self.data[key] = value
-    
+
     def validate_session(self):
         request = self.request
         cookies = request.COOKIES

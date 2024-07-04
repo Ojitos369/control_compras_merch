@@ -120,7 +120,7 @@ class Register(NoSession, PostApi):
             "fecha_nacimiento": fecha_nacimiento,
         }
         campos = "id_usuario, fecha_creado, fecha_editado, validado, activo, "
-        values = "%s, now(), now(), false, false, "
+        values = "%s, now(), now(), true, true, "
         query_data = [id_usuario]
 
         for campo, valor in user_data.items():
@@ -163,14 +163,14 @@ class Register(NoSession, PostApi):
                 """
         query_data = (id_codigo, usuario_id, codigo, fecha_codigo, fecha_vencimiento, tipo_validacion)
 
-        if not self.conexion.ejecutar(query, query_data):
-            self.conexion.rollback()
-            msg_error = "Error al insertar el codigo de confirmacion en db\n"
-            msg_error += f"query: {query}\n"
-            msg_error += f"query_data: {query_data}\n"
-            self.send_me_error(msg_error)
-            raise self.MYE("Usuario guardado, el error al enviar codigo de confirmacion, por favor contacte a soporte")
-        self.conexion.commit()
+        # if not self.conexion.ejecutar(query, query_data):
+        #     self.conexion.rollback()
+        #     msg_error = "Error al insertar el codigo de confirmacion en db\n"
+        #     msg_error += f"query: {query}\n"
+        #     msg_error += f"query_data: {query_data}\n"
+        #     self.send_me_error(msg_error)
+        #     raise self.MYE("Usuario guardado, el error al enviar codigo de confirmacion, por favor contacte a soporte")
+        # self.conexion.commit()
         
         to_email = correo
         email_subject = "Validación de cuenta"

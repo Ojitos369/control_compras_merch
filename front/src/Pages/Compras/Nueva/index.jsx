@@ -10,7 +10,7 @@ import styles from './styles/index.module.scss';
 const Nueva = props => {
     const { s, f, gs } = useStates();
     const data = useMemo(() => s.compras?.actualCompra?.form || {}, [s.compras?.actualCompra?.form]);
-    const guardando = useMemo(() => !s.loadings?.compras?.guardarCompra, [s.loadings?.compras?.guardarCompra]);
+    const guardando = useMemo(() => s.loadings?.compras?.guardarCompra, [s.loadings?.compras?.guardarCompra]);
 
 
     useEffect(() => {

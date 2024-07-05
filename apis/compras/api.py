@@ -105,6 +105,8 @@ class GuardarCompra(PostApi):
         self.id_compra = self.data["id"]
         self.get_usuarios()
         self.guardar_compra()
+        self.guardar_detalles()
+        self.guardar_usuarios()
 
     def get_usuarios(self):
         usuarios = [i["usuario"].lower() for i in self.data["items"]]
@@ -144,10 +146,22 @@ class GuardarCompra(PostApi):
                 (id_compra_det, compra_id, usuario_id, descripcion, precio, cantidad, total)
                 VALUES
                 (%s, %s, %s, %s, %s, %s, %s) """
+            
+        query_2 = """INSERT INTO cargos
+                (id_cargo, usuario_id, compra_det_id, total, fecha_limite, pagado, status_cargo, tipo)
+                VALUES
+                (%s, %s, %s, %s, %s, false, 'pendiente', 'compra')
+        """
+        
+        query_3 = """INSERT INTO kardex
+                (id_kardex, usuario_id, cantidad, tipo, tipo_id, comentario, movimiento)
+                VALUES
+                (%s, %s, %s, 'compra', %s, 'compra inicial', 'S') """
 
         for item in self.data["items"]:
             user = item["usuario"].lower()
             usuario_id = self.usuarios_ids[user] if user in self.usuarios_ids else self.user["id_usuario"]
+            total_precio = round(float(item["precio"]) * float(item["cantidad"]), 2)
             id_compra_det = str(uuid.uuid4())
 
             query_data = (
@@ -157,7 +171,7 @@ class GuardarCompra(PostApi):
                 item["descripcion_compra"],
                 item["precio"],
                 item["cantidad"],
-                int(item["precio"]) * int(item["cantidad"])
+                total_precio
             )
             if usuario_id not in self.totales_usuario:
                 self.totales_usuario[usuario_id] = 0
@@ -167,13 +181,42 @@ class GuardarCompra(PostApi):
                 self.conexion.rollback()
                 raise Exception("Error al guardar los detalles de la compra")
             self.totales_usuario[item["usuario"].lower()] += int(item["precio"]) * int(item["cantidad"])
+            
+            id_cargo = str(uuid.uuid4())
+            # id_cargo, usuario_id, compra_det_id, total, fecha_limite
+            query_data = (
+                id_cargo,
+                usuario_id,
+                id_compra_det,
+                total_precio,
+                self.data["fecha_limite"],
+            )
+            
+            if not(self.conexion.ejecutar(query_2, query_data)):
+                self.conexion.rollback()
+                raise Exception("Error al guardar los cargos de la compra")
+            self.conexion.commit()
+            
+            # id_kardex, usuario_id, cantidad, tipo_id
+            id_kardex = str(uuid.uuid4())
+            query_data = (
+                id_kardex,
+                usuario_id,
+                total_precio,
+                id_cargo,
+            )
+            
+            if not(self.conexion.ejecutar(query_3, query_data)):
+                self.conexion.rollback()
+                raise Exception("Error al guardar el kardex de la compra")
+            self.conexion.commit()
 
     def guardar_usuarios(self):
         query = """INSERT INTO compras_usuarios
                 (id_compra_usuario, usuario_id, compra_id, total_correspondiente, porcentaje)
                 VALES
                 (%s, %s, %s, %s, %s) """
-        
+
         for usuario_id, total in self.totales_usuario.items():
             id_compra_usuario = str(uuid.uuid4())
             porcentaje = round(total / self.data["total"] * 100, 2)
@@ -188,6 +231,7 @@ class GuardarCompra(PostApi):
             if not(self.conexion.ejecutar(query, query_data)):
                 self.conexion.rollback()
                 raise Exception("Error al guardar los usuarios de la compra")
+            self.conexion.commit()
 
     def test_data(self):
         data = {
@@ -214,3 +258,35 @@ class GuardarCompra(PostApi):
                 }
             ]
         }
+
+
+class GetCompra(GetApi):
+    def main(self):
+        self.show_me()
+        self.id_compra = self.data["id_compra"]
+        # compras, compras_usuarios, compras_det, cargos, abonos
+        self.get_compra()
+        
+        
+    def get_compra(self):
+        query = """SELECT * FROM compras
+                WHERE id_compra = %s """
+        query_data = (self.id_compra,)
+        compra = self.conexion.consulta_asociativa(query, query_data)
+        if not compra:
+            self.send_me_error("No se encontró la compra")
+        self.compra = compra[0]
+    
+    def get_compras_det(self):
+        query = """SELECT * FROM compras_det
+                WHERE compra_id = %s """
+        query_data = (self.id_compra,)
+        self.compras_det = self.conexion.consulta_asociativa(query, query_data)
+        self.compras_det_ids = [i["id_compra_det"] for i in self.compras_det]
+
+    def get_cargos(self):
+        query = """SELECT * FROM cargos
+                WHERE compra_det_id IN %s """
+        query_data = (tuple(self.compras_det_ids),)
+        self.cargos = self.conexion.consulta_asociativa(query, query_data)
+        self.cargos_ids = [i["id_cargo"] for i in self.cargos]

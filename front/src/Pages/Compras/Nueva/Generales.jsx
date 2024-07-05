@@ -13,6 +13,8 @@ const Generales = props => {
         {label: 'Origen', name: 'origen', type: 'text', value: data.origen,
             placeholder: 'Kyototo, Shyshy, Infieles, ...'
         },
+        {label: 'Fecha Limite', name: 'fecha_limite', type: 'date', value: data.fecha_limite
+        },
     ], [data])
 
     const upgradeData = (key, value) => {

@@ -56,9 +56,9 @@ const Register = props => {
     return (
         <div className="flex justify-center flex-wrap items-center">
             <h1 className="w-full text-center text-2xl font-bold mb-5">Registro</h1>
-            <form className={`flex flex-wrap justify-content-center ${styles.form}`} onSubmit={registrarse}>
+            <form className={`flex flex-wrap justify-center ${styles.form}`} onSubmit={registrarse}>
                 {items.map((item, index) => (
-                    <div key={index} className={`${gs.my_input}`}>
+                    <div key={index} className={`${gs.my_input} w-10/12 md:w-1/2`}>
                         <div className={`${gs.input_content}`}>
                             <label htmlFor={item.key}>{item.label}</label>
                             <input

@@ -230,6 +230,22 @@ const useF = props => {
             }).finally(() => {
                 u2('loadings', 'compras', 'guardarCompra', false);
             });
+        },
+        getMyCompras: () => {
+            if (s.loadings?.compras?.getMyCompras) return;
+            u2('loadings', 'compras', 'getMyCompras', true);
+
+            const end = 'compras/get_my_compras/';
+            miAxios.get(end)
+            .then(response => {
+                const compras = response.data.compras;
+                u1('compras', 'misCompras', compras);
+            }).catch(error => {
+                const message = error.response.data.message;
+                console.log(message);
+            }).finally(() => {
+                u2('loadings', 'compras', 'getMyCompras', false);
+            });
         }
     }
 

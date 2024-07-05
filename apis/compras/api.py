@@ -101,7 +101,7 @@ class GuardarCompra(PostApi):
     def main(self):
         self.show_me()
         from ojitos369.utils import print_json as pj
-        pj(self.data)
+        # pj(self.data)
         self.id_compra = self.data["id"]
         self.get_usuarios()
         self.guardar_compra()
@@ -111,7 +111,7 @@ class GuardarCompra(PostApi):
     def get_usuarios(self):
         usuarios = [i["usuario"].lower() for i in self.data["items"]]
         usuarios = list(set(usuarios))
-        query = """SELECT id_usuario FROM usuarios
+        query = """SELECT id_usuario, usuario FROM usuarios
                 WHERE lower(usuario) IN %s """
         query_data = (tuple(usuarios),)
         usuarios = self.conexion.consulta_asociativa(query, query_data)
@@ -139,10 +139,19 @@ class GuardarCompra(PostApi):
             self.conexion.rollback()
             raise Exception("Error al guardar la compra")
         self.conexion.commit()
+        
+        query = """UPDATE imagenes
+                SET estatus = 'guardada'
+                WHERE compra_id = %s """
+        query_data = (self.id_compra,)
+        if not(self.conexion.ejecutar(query, query_data)):
+            self.conexion.rollback()
+            raise Exception("Error al actualizar las imágenes")
+        self.conexion.commit()
 
     def guardar_detalles(self):
         # id_compra_det, compra_id, usuario_id, descripcion, precio, cantidad, total
-        query = """INSERT INTO compras_detalles
+        query = """INSERT INTO compras_det
                 (id_compra_det, compra_id, usuario_id, descripcion, precio, cantidad, total)
                 VALUES
                 (%s, %s, %s, %s, %s, %s, %s) """
@@ -180,7 +189,7 @@ class GuardarCompra(PostApi):
             if not(self.conexion.ejecutar(query, query_data)):
                 self.conexion.rollback()
                 raise Exception("Error al guardar los detalles de la compra")
-            self.totales_usuario[item["usuario"].lower()] += int(item["precio"]) * int(item["cantidad"])
+            self.totales_usuario[usuario_id] += int(item["precio"]) * int(item["cantidad"])
             
             id_cargo = str(uuid.uuid4())
             # id_cargo, usuario_id, compra_det_id, total, fecha_limite
@@ -214,7 +223,7 @@ class GuardarCompra(PostApi):
     def guardar_usuarios(self):
         query = """INSERT INTO compras_usuarios
                 (id_compra_usuario, usuario_id, compra_id, total_correspondiente, porcentaje)
-                VALES
+                VALUES
                 (%s, %s, %s, %s, %s) """
 
         for usuario_id, total in self.totales_usuario.items():
@@ -266,6 +275,8 @@ class GetCompra(GetApi):
         self.id_compra = self.data["id_compra"]
         # compras, compras_usuarios, compras_det, cargos, abonos
         self.get_compra()
+        self.get_compras_det()
+        self.get_cargos()
         
         
     def get_compra(self):
@@ -278,8 +289,8 @@ class GetCompra(GetApi):
         self.compra = compra[0]
     
     def get_compras_det(self):
-        query = """SELECT * FROM compras_det
-                WHERE compra_id = %s """
+        query = """SELECT cd.*, u.usuario FROM compras_det, usuarios u
+                WHERE compra_id = %s AND cd.usuario_id = u.id_usuario """
         query_data = (self.id_compra,)
         self.compras_det = self.conexion.consulta_asociativa(query, query_data)
         self.compras_det_ids = [i["id_compra_det"] for i in self.compras_det]
@@ -290,3 +301,45 @@ class GetCompra(GetApi):
         query_data = (tuple(self.compras_det_ids),)
         self.cargos = self.conexion.consulta_asociativa(query, query_data)
         self.cargos_ids = [i["id_cargo"] for i in self.cargos]
+
+
+class GetMyCompras(GetApi):
+    def main(self):
+        self.show_me()
+        self.compras = []
+        self.compras_ids = []
+        self.id_usuario = self.user["id_usuario"]
+        self.get_detalles()
+        self.get_compras()
+        
+        self.response = {
+            "compras": self.compras
+        }
+    
+    def get_detalles(self):
+        query = """SELECT *
+                FROM compras_det
+                WHERE usuario_id = %s """
+        query_data = (self.id_usuario,)
+        
+        r = self.conexion.consulta_asociativa(query, query_data)
+        compras_ids = [i["compra_id"] for i in r]
+        self.compras_ids = list(set(compras_ids))
+
+    def get_compras(self):
+        if self.compras_ids:
+            query = """SELECT *
+                    FROM compras
+                    WHERE id_compra IN %s
+                    UNION
+                    SELECT *
+                    FROM compras
+                    WHERE creado_por = %s """
+            query_data = (tuple(self.compras_ids), self.id_usuario)
+        else:
+            query = """SELECT *
+                    FROM compras
+                    WHERE creado_por = %s """
+            query_data = (self.id_usuario,)
+
+        self.compras = self.conexion.consulta_asociativa(query, query_data)

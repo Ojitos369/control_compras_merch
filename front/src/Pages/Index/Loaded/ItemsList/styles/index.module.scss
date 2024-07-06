@@ -1,0 +1,10 @@
+.itemListContainer {
+    width: 100%;
+    display: flex;
+    flex-wrap: wrap;
+    .itemList {
+        .compra {
+            width: 100%;
+        }
+    }
+}

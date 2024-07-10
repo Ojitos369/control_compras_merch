@@ -3,16 +3,8 @@ import { showCurrency } from "../../../Core/helper";
 
 
 const Resumen = props => {
-    const { s, f, styles, gs, data } = props;
+    const { f, styles, data, save, valid } = props;
     const items = useMemo(() => data.items || [], [data]);
-
-    const valid = useMemo(() => {
-        const items = data.items || [];
-        const items_valid_fields = items.every(item => !!item.cantidad && !!item.precio && !!item.descripcion_compra);
-        const items_valid_length = items.length > 0;
-        const valid_name = !!data.nombre_compra;
-        return items_valid_fields && items_valid_length && valid_name;
-    }, [data.items, data.nombre_compra]);
 
     const totalItems = useMemo(() => {
         return items.reduce((acc, item) => {
@@ -20,13 +12,6 @@ const Resumen = props => {
         }, 0);
     }, [data.items]);
     const total = useMemo(() => data.total, [data.total]);
-
-    const save = e => {
-        if (!!e) e.preventDefault();
-        if (valid) {
-            f.compras.guardarCompra();
-        }
-    }
 
     useEffect(() => {
         const total = items.reduce((acc, item) => {

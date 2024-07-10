@@ -1,29 +1,6 @@
 import { useMemo, useState, useEffect } from "react";
 const Images = props => {
-    const { s, f, styles } = props;
-    const images = useMemo(() => s.compras?.actualCompra?.form?.images || [], [s.compras?.actualCompra?.form?.images]);
-    const [actualImage, setActualImage] = useState(null);
-
-    const cambiar = newIndex => {
-        const index = newIndex < 0 ? images.length - 1 : newIndex >= images.length ? 0 : newIndex;
-        setActualImage(images[index]);
-    }
-
-    const clickInput = () => {
-        const input = document.getElementById('temp-file');
-        input.value = '';
-        input.click();
-    }
-
-    useEffect(() => {
-        if (images.length > 0 && !actualImage) {
-            cambiar(0)
-        }
-        else if (!images.length) {
-            setActualImage(null);
-        }
-
-    }, [images]);
+    const { f, styles, images, actualImage, cambiarImage, clickInput } = props;
 
     return (
         <div className={`${styles.images} w-full md:w-1/2 justify-center flex flex-wrap`}>
@@ -54,11 +31,11 @@ const Images = props => {
             </div>
             {images.length > 1 && 
             <div className="w-full flex justify-center">
-                <div className="w-1/2 flex justify-between">
-                    <button className={`${styles.images_change}`} onClick={() => cambiar(actualImage.index - 1)}>
+                <div className="w-2/3 flex justify-between">
+                    <button className={`${styles.images_change} w-1/3`} onClick={() => cambiarImage(actualImage.index - 1)}>
                         Anterior
                     </button>
-                    <button className={`${styles.images_change}`} onClick={() => cambiar(actualImage.index + 1)}>
+                    <button className={`${styles.images_change} w-1/3`} onClick={() => cambiarImage(actualImage.index + 1)}>
                         Siguiente
                     </button>
                 </div>

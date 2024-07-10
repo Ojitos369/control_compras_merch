@@ -1,60 +1,9 @@
-import { useMemo } from "react";
+import { useMemo, useEffect } from "react";
 import { RemoveStash } from "../../../Components/Icons";
 import { showCurrency } from "../../../Core/helper";
 
 const Articulos = props => {
-    const { s, f, styles, gs, data } = props;
-    // usuario_id, descripcion, precio, cantidad, total
-    const fields = useMemo(() => [
-        {label: 'Usuario', name: 'usuario', type: 'text',
-            default: s.login?.data?.user?.usuario || '',
-        },
-        {label: 'Descripcion', name: 'descripcion_compra', type: 'text',
-            required: true
-        },
-        {label: 'Cantidad', name: 'cantidad', type: 'text',
-            required: true
-        },
-        {label: 'Precio', name: 'precio', type: 'text',
-            required: true
-        },
-    ], [s.login?.data?.user?.usuario]);
-
-    const items = useMemo(() => {
-        const items = data.map(d => {
-            const item = {};
-            fields.forEach(f => {
-                item[f.name] = d[f.name] || (f.default ?? null);
-            });
-            return item;
-        })
-
-        return items;
-    }, [data]);
-
-    const addNew = e => {
-        if (!!e) e.preventDefault();
-        // s.compras?.actualCompra?.form
-        let newItem = {}
-        fields.forEach(f => {
-            newItem[f.name] = (f.default ?? null);
-        });
-
-        let newItems = [...data, newItem];
-        f.u3('compras', 'actualCompra', 'form', 'items', newItems);
-    }
-
-    const upgradeData = (index, key, value) => {
-        let newItems = f.cloneO(data);
-        newItems[index][key] = value;
-        f.u3('compras', 'actualCompra', 'form', 'items', newItems);
-    };
-
-    const removeItem = index => {
-        let newItems = f.cloneO(data);
-        newItems.splice(index, 1);
-        f.u3('compras', 'actualCompra', 'form', 'items', newItems);
-    };
+    const { styles, gs, items, fields, addNew, upgradeData, removeItem } = props;
 
     return (
         <div className={`${styles.items} w-full flex flex-wrap mb-12 justify-around`}>
@@ -83,6 +32,7 @@ const Articulos = props => {
                                                 type={field.type}
                                                 value={value || ''}
                                                 placeholder={field.placeholder || ''}
+                                                id={`${field.name}_${index}`}
                                                 onChange={e => upgradeData(index, field.name, e.target.value)}
                                                 />
                                             {(field.required ?? false) && !value && <small className='text-red-500 w-full text-start font-bold'>Campo requerido</small>}

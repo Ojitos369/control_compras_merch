@@ -190,6 +190,7 @@ const useF = props => {
                     const images = s.compras?.actualCompra?.form?.images || [];
                     image.index = images.length;
                     u3('compras', 'actualCompra', 'form', 'images', [...images, image]);
+                    u2('compras', 'actualCompra', 'actualImage', image);
                 }
                 
                 temp_file.files = null;

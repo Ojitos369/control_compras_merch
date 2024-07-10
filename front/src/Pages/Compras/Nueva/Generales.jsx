@@ -33,6 +33,7 @@ const Generales = props => {
                             type={item.type}
                             value={item.value || ''}
                             placeholder={item.placeholder || ''}
+                            id={item.name}
                             onChange={e => upgradeData(item.name, e.target.value)}
                             />
                         {(item.required ?? false) && !item.value && <small className='text-red-500 w-full text-start font-bold'>Campo requerido</small>}

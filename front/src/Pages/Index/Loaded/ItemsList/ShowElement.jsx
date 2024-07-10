@@ -32,8 +32,9 @@ const ShowElement = props => {
                 <div className={`${styles.fecha}`}>
                     {showDate(fecha_compra)}
                 </div>
-                <div 
+                <Link 
                     className={`${styles.topSection}`}
+                    to={`/compras/detalle/${id_compra}`}
                     style={{ 
                         backgroundImage: `url(${bgUrl})`,
                         backgroundSize: 'cover',
@@ -48,7 +49,7 @@ const ShowElement = props => {
                             {actualIndex + 1} / {images.length}
                         </span>
                     </div>}
-                </div>
+                </Link>
                 <div className={`${styles.changeBgControl}`}>
                     <button
                         className={`${styles.changeBgButton}`}

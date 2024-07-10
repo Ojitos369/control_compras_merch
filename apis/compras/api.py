@@ -333,7 +333,14 @@ class GetCompra(GetApi):
         self.imagenes = self.conexion.consulta_asociativa(query, query_data)
 
     def get_compras_det(self):
-        query = """SELECT cd.*, u.usuario FROM compras_det cd, usuarios u
+        query = """SELECT cd.*, 
+                        u.usuario,
+                        (select sum(cantidad)
+                        from abonos
+                        where compra_det_id=cd.id_compra_det
+                        and tipo = 'compra'
+                        and usuario_id = cd.usuario_id) total_abonado
+                FROM compras_det cd, usuarios u
                 WHERE compra_id = %s AND cd.usuario_id = u.id_usuario """
         query_data = (self.id_compra,)
         self.compras_det = self.conexion.consulta_asociativa(query, query_data)

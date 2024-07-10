@@ -7,11 +7,81 @@
     justify-content: center;
     width: 100vw;
     padding: 15px;
+    margin-bottom: 35px;
     .imagesContainer {
         width: 100%;
     }
     .generalesContainer {
         width: 100%;
+        .nombreCompra {
+            width: 100%;
+            text-align: center;
+            font-size: 1.5em;
+            font-weight: bold;
+        }
+        .fechaCompra {
+            width: 100%;
+            text-align: end;
+            font-size: 0.9em;
+            padding: 0 15px;
+            // border-bottom: 1px solid #888;
+        }
+        .descripcionCompra {
+            width: 100%;
+            text-align: start;
+            font-size: 1em;
+            margin: 0;
+            padding: 0 15px;
+            padding-bottom: 3px;
+            border-bottom: 1px solid #888;
+        }
+        .limitePago {
+            width: 100%;
+            display: flex;
+            flex-direction: row;
+            justify-content: space-between;
+            font-size: 0.9rem;
+            margin: 0;
+            padding: 3px 15px;
+            border-bottom: 1px solid #888;
+            .fechaLimiteLabel {
+                margin-right: 15px;
+            }
+            .fechaLimite {
+                font-weight: bold;
+            }
+        }
+        .totalContainer {
+            width: 100%;
+            display: flex;
+            flex-direction: row;
+            justify-content: space-between;
+            font-size: 1.2em;
+            margin: 0;
+            padding: 3px 15px;
+            border-bottom: 1px solid #888;
+            .totalLabel {
+                margin-right: 15px;
+            }
+            .total {
+                font-weight: bold;
+            }
+        }
+        .origenContainer {
+            width: 100%;
+            display: flex;
+            flex-direction: row;
+            justify-content: space-between;
+            margin: 0;
+            padding: 3px 15px;
+            border-bottom: 1px solid #888;
+            .origenLabel {
+                margin-right: 15px;
+            }
+            .origen {
+                font-weight: bold;
+            }
+        }
     }
     .articulosContainer {
         width: 100%;

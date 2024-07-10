@@ -11,25 +11,36 @@ const Generales = props => {
             <h2 className={`${styles.nombreCompra}`}>
                 {nombre_compra}
             </h2>
+            <p className={`${styles.fechaCompra}`}>
+                {showDate(fecha_compra)}
+            </p>
             <p className={`${styles.descripcionCompra}`}>
                 {descripcion_compra}
             </p>
-            <div className={`${styles.fechaContainer}`}>
-                <p className={`${styles.fechaCompra}`}>
-                    {showDate(fecha_compra)}
+            <div className={`${styles.origenContainer}`}>
+                <p className={`${styles.origenLabel}`}>
+                    Origen:
+                </p>
+                <a href={link} target='_blank' className={`${styles.origen}`}>
+                    {origen}
+                </a>
+            </div>
+            <div className={`${styles.limitePago}`}>
+                <p className={`${styles.fechaLimiteLabel}`}>
+                    Fecha límite de pago:
                 </p>
                 <p className={`${styles.fechaLimite}`}>
                     {showDate(fecha_limite, false)}
                 </p>
             </div>
             <div className={`${styles.totalContainer}`}>
+                <p className={`${styles.totalLabel}`}>
+                    Total:
+                </p>
                 <p className={`${styles.total}`}>
-                {showCurrency(total_abonado)}/{showCurrency(total)}
+                    {showCurrency(total_abonado)}/{showCurrency(total)}
                 </p>
             </div>
-            <a href={link} target='_blank' className={`${styles.origen}`}>
-                {origen}
-            </a>
         </div>
     )
 }

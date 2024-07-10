@@ -1,0 +1,22 @@
+@import "../../../../static/css/response.scss";
+
+.compraDetailContainer {
+    display: flex;
+    flex-direction: row;
+    flex-wrap: wrap;
+    justify-content: center;
+    width: 100vw;
+    padding: 15px;
+    .imagesContainer {
+        width: 100%;
+    }
+    .generalesContainer {
+        width: 100%;
+    }
+    .articulosContainer {
+        width: 100%;
+    }
+    .resumenContainer {
+        width: 100%;
+    }
+}

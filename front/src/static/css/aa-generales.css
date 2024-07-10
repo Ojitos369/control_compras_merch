@@ -3,17 +3,12 @@
 
 body {
     background: var(--bg-color);
-    color: #ccc;
+    color: var(--my-minor);
     min-height: 100vh;
     overflow-y: scroll;
 }
 
 a {
-    color: #fff;
-    text-decoration: none;
-}
-a:hover {
-    color: #fff;
     text-decoration: none;
 }
 

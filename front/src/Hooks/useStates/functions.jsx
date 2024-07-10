@@ -165,7 +165,16 @@ const useF = props => {
         },
         getUuid: () => {
             return uuidv4();
-        }
+        },
+        getHostLink: () => {
+            const end = 'general/get_host_link/';
+            miAxios.get(end)
+            .then(response => {
+                const host = response.data.host;
+                u1('general', 'host', host);
+                u1('general', 'imagesLink', `${host}/static/compras`);
+            });
+        },
     }
 
     const compras = {
@@ -175,7 +184,13 @@ const useF = props => {
             const end = 'compras/guardar_imagen/'
             const formData = new FormData();
             const name = s.compras?.actualCompra?.form?.id + '_' + general.getUuid();
-            const file = e.target.files[0];
+            let file;
+            if (e.target?.files?.length > 0) {
+                file = e.target.files[0];
+            } else if (e.dataTransfer?.files?.length > 0) {
+                e.preventDefault();
+                file = e.dataTransfer.files[0];
+            }
             const ext = file.name.split('.').pop();
             formData.append('file', file, `${name}.${ext}`);
             const config = {
@@ -246,6 +261,21 @@ const useF = props => {
                 console.log(message);
             }).finally(() => {
                 u2('loadings', 'compras', 'getMyCompras', false);
+            });
+        },
+        getCompra: compra_id => {
+            if (!!s.loadings?.compras?.getCompra) return;
+            u2('loadings', 'compras', 'getCompra', true);
+
+            const end = 'compras/get_compra/?compra_id='+compra_id;
+            miAxios(end)
+            .then(response => {
+                const compra = response.data.compra;
+                u2('compras', 'consulta', 'compraData', compra);
+            }).catch(err => {
+                console.log('err', err)
+            }).finally(() => {
+                u2('loadings', 'compras', 'getCompra', false);
             });
         }
     }

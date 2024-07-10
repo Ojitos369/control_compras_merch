@@ -1,6 +1,7 @@
-import { useMemo, useState, useEffect } from "react";
+import { useVars } from "./myUse";
 const Images = props => {
-    const { f, styles, images, actualImage, cambiarImage, clickInput } = props;
+    const { f, styles } = props;
+    const { images, actualImage, cambiarImage, clickInput } = useVars();
 
     return (
         <div className={`${styles.images} w-full md:w-1/2 justify-center flex flex-wrap`}>

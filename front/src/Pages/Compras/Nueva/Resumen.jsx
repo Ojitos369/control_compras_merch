@@ -1,25 +1,9 @@
-import { useMemo, useEffect } from "react";
 import { showCurrency } from "../../../Core/helper";
-
+import { useVars } from "./myUse";
 
 const Resumen = props => {
-    const { f, styles, data, save, valid } = props;
-    const items = useMemo(() => data.items || [], [data]);
-
-    const totalItems = useMemo(() => {
-        return items.reduce((acc, item) => {
-            return acc + parseFloat(item.cantidad || 0);
-        }, 0);
-    }, [data.items]);
-    const total = useMemo(() => data.total, [data.total]);
-
-    useEffect(() => {
-        const total = items.reduce((acc, item) => {
-            return acc + (parseFloat(item.cantidad || 0) * parseFloat(item.precio || 0));
-        }, 0);
-        f.u3('compras', 'actualCompra', 'form', 'total', total);
-
-    }, [data.items]);
+    const { f, styles } = props;
+    const { save, valid, total, totalItems } = useVars(props);
 
     return (
         <div className={`${styles.resumen}`}>

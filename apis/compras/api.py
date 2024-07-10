@@ -41,11 +41,11 @@ class GuardarImagen(PostApi):
         }
         
         query = """INSERT INTO imagenes
-                (id_imagen, usuario_id, compra_id, ruta, estatus)
+                (id_imagen, usuario_id, compra_id, ruta, filename, estatus)
                 values
-                (%s, %s, %s, %s, 'pendiente') """
+                (%s, %s, %s, %s, %s, 'pendiente') """
         
-        query_data = (file_id, usuario_id, id_compra, path_save)
+        query_data = (file_id, usuario_id, id_compra, path_save, file_name)
         
         if not (self.conexion.ejecutar(query, query_data)):
             self.conexion.rollback()
@@ -157,9 +157,9 @@ class GuardarCompra(PostApi):
                 (%s, %s, %s, %s, %s, %s, %s) """
             
         query_2 = """INSERT INTO cargos
-                (id_cargo, usuario_id, compra_det_id, total, fecha_limite, pagado, status_cargo, tipo)
+                (id_cargo, usuario_id, compra_det_id, compra_id, total, fecha_limite, pagado, status_cargo, tipo)
                 VALUES
-                (%s, %s, %s, %s, %s, false, 'pendiente', 'compra')
+                (%s, %s, %s, %s, %s, %s, false, 'pendiente', 'compra')
         """
         
         query_3 = """INSERT INTO kardex
@@ -197,6 +197,7 @@ class GuardarCompra(PostApi):
                 id_cargo,
                 usuario_id,
                 id_compra_det,
+                self.id_compra,
                 total_precio,
                 self.data["fecha_limite"],
             )
@@ -272,24 +273,67 @@ class GuardarCompra(PostApi):
 class GetCompra(GetApi):
     def main(self):
         self.show_me()
-        self.id_compra = self.data["id_compra"]
+        self.id_compra = self.data["compra_id"]
         # compras, compras_usuarios, compras_det, cargos, abonos
         self.get_compra()
+        self.get_imagenes()
         self.get_compras_det()
         self.get_cargos()
+        self.get_abonos()
         
-        
+        self.response = {
+            "compra": {
+                "compra": self.compra,
+                "imagenes": self.imagenes,
+                "articulos": self.compras_det,
+                "cargos": self.cargos,
+                "abonos": self.abonos,
+            }
+        }
+
     def get_compra(self):
-        query = """SELECT * FROM compras
-                WHERE id_compra = %s """
-        query_data = (self.id_compra,)
+        query = """SELECT c.*,
+                (select count(*) 
+                from compras_det 
+                where compra_id=c.id_compra) cantidad_articulos,
+                (select sum(cantidad)
+                from compras_det 
+                where compra_id=c.id_compra) cantidad_items,
+                (select sum(total)
+                from compras_det
+                where compra_id=c.id_compra) total_deuda,
+                (select sum(cantidad)
+                from abonos
+                where compra_id=c.id_compra
+                and tipo='compra') total_abonado,
+                (select min(fecha_limite)
+                from cargos
+                where compra_id=c.id_compra
+                and tipo='compra') fecha_limite
+                FROM compras c
+                WHERE c.id_compra = %s
+                AND (c.creado_por = %s OR %s IN (SELECT usuario_id FROM compras_usuarios WHERE compra_id = %s))
+                """
+        query_data = (
+            self.id_compra,
+            self.user["id_usuario"],
+            self.user["id_usuario"],
+            self.id_compra,
+        )
         compra = self.conexion.consulta_asociativa(query, query_data)
         if not compra:
             self.send_me_error("No se encontró la compra")
+            raise self.MYE("No se encontro informacion de la compra")
         self.compra = compra[0]
     
+    def get_imagenes(self):
+        query = """SELECT * FROM imagenes
+                WHERE compra_id = %s """
+        query_data = (self.id_compra,)
+        self.imagenes = self.conexion.consulta_asociativa(query, query_data)
+
     def get_compras_det(self):
-        query = """SELECT cd.*, u.usuario FROM compras_det, usuarios u
+        query = """SELECT cd.*, u.usuario FROM compras_det cd, usuarios u
                 WHERE compra_id = %s AND cd.usuario_id = u.id_usuario """
         query_data = (self.id_compra,)
         self.compras_det = self.conexion.consulta_asociativa(query, query_data)
@@ -297,10 +341,17 @@ class GetCompra(GetApi):
 
     def get_cargos(self):
         query = """SELECT * FROM cargos
-                WHERE compra_det_id IN %s """
-        query_data = (tuple(self.compras_det_ids),)
+                WHERE compra_id = %s """
+        query_data = (self.id_compra,)
         self.cargos = self.conexion.consulta_asociativa(query, query_data)
         self.cargos_ids = [i["id_cargo"] for i in self.cargos]
+    
+    def get_abonos(self):
+        query = """SELECT * FROM abonos
+                WHERE compra_id = %s """
+        query_data = (self.id_compra,)
+        self.abonos = self.conexion.consulta_asociativa(query, query_data)
+        self.abonos_ids = [i["id_abono"] for i in self.abonos]
 
 
 class GetMyCompras(GetApi):
@@ -310,6 +361,7 @@ class GetMyCompras(GetApi):
         self.compras_ids = []
         self.id_usuario = self.user["id_usuario"]
         self.get_detalles()
+        self.get_images()
         self.get_compras()
         
         self.response = {
@@ -323,23 +375,79 @@ class GetMyCompras(GetApi):
         query_data = (self.id_usuario,)
         
         r = self.conexion.consulta_asociativa(query, query_data)
-        compras_ids = [i["compra_id"] for i in r]
+        compras_ids = list(set([i["compra_id"] for i in r]))
         self.compras_ids = list(set(compras_ids))
+    
+    
+    def get_images(self):
+        query = """SELECT img.*
+                FROM imagenes img
+                WHERE img.usuario_id = %s 
+                AND img.compra_id in %s """
+        query_data = (self.id_usuario, tuple(self.compras_ids))
+        
+        images = self.conexion.consulta_asociativa(query, query_data)
+        self.images = {}
+        for image in images:
+            if image["compra_id"] not in self.images:
+                self.images[image["compra_id"]] = []
+            self.images[image["compra_id"]].append(image)
 
     def get_compras(self):
         if self.compras_ids:
-            query = """SELECT *
+            query = """select c.*, 
+                        (select count(*) 
+                        from compras_det 
+                        where compra_id=c.id_compra
+                        and usuario_id=%s) as articulos,
+                        (select sum(cantidad)
+                        from compras_det 
+                        where compra_id=c.id_compra
+                        and usuario_id=%s) as cantidad_items,
+                        (select sum(total)
+                        from compras_det
+                        where compra_id=c.id_compra
+                        and usuario_id=%s) as total_deuda,
+                        (select sum(cantidad)
+                        from abonos
+                        where compra_id=c.id_compra
+                        and usuario_id=%s) as total_abonado,
+                        (select min(fecha_limite)
+                        from cargos
+                        where compra_id=c.id_compra
+                        and usuario_id=%s) as fecha_limite
+                    from (SELECT *
                     FROM compras
                     WHERE id_compra IN %s
                     UNION
                     SELECT *
                     FROM compras
-                    WHERE creado_por = %s """
-            query_data = (tuple(self.compras_ids), self.id_usuario)
+                    WHERE creado_por = %s) c
+                    
+                    ORDER BY c.fecha_compra DESC
+                """
+            query_data = (
+                self.id_usuario, 
+                self.id_usuario, 
+                self.id_usuario, 
+                self.id_usuario, 
+                self.id_usuario, 
+                tuple(self.compras_ids), 
+                self.id_usuario
+            )
         else:
             query = """SELECT *
                     FROM compras
                     WHERE creado_por = %s """
             query_data = (self.id_usuario,)
-
+        
         self.compras = self.conexion.consulta_asociativa(query, query_data)
+        
+        for c in self.compras:
+            c["images"] = self.images.get(c["id_compra"], [])
+
+
+""" 
+
+"""
+

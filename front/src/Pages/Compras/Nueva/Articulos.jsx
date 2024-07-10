@@ -1,9 +1,10 @@
-import { useMemo, useEffect } from "react";
 import { RemoveStash } from "../../../Components/Icons";
 import { showCurrency } from "../../../Core/helper";
+import { useVars } from "./myUse";
 
 const Articulos = props => {
-    const { styles, gs, items, fields, addNew, upgradeData, removeItem } = props;
+    const { styles, gs } = props;
+    const { items, fields, addNew, upgradeData, removeItem } = useVars(props);
 
     return (
         <div className={`${styles.items} w-full flex flex-wrap mb-12 justify-around`}>

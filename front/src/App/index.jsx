@@ -4,7 +4,7 @@ import {
     Base, 
     Index, 
     Test, 
-    ComprasPage, ComprasNueva, 
+    ComprasPage, ComprasNueva, ComprasDetalle, 
     Users, UsersLogin, UsersRegister, UsersValidarCuenta, UsersAccount, 
     store, Provider, useStates, 
     GeneralNotification, 
@@ -31,8 +31,13 @@ function AppUI() {
     }, [ls?.theme]);
 
     useEffect(() => {
+        f.u1('shortCuts', 'keys', {});
         f.users.validateLogin();
     }, [window.location.href]);
+
+    useEffect(() => {
+        f.general.getHostLink()
+    }, [s.login?.data?.user]);
 
     return (
         <div className={`text-[var(--my-minor)]`}>
@@ -66,6 +71,7 @@ const Logged = props => {
                 {/* -----------   Compras   ----------- */}
                 <Route path="compras" element={ <ComprasPage /> } >
                     <Route path="nueva" element={ <ComprasNueva /> } />
+                    <Route path="detalle/:compra_id" element={ <ComprasDetalle /> } />
                     {/* <Route path="validar_cuenta/:validacion" element={ <UsersValidarCuenta /> } /> */}
                 </Route>
                 {/* -----------   /Compras   ----------- */}

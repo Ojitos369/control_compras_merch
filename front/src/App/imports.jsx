@@ -12,6 +12,7 @@ import { Test } from '../Pages/Test';
 // compras
 import { ComprasPage } from '../Pages/Compras/ComprasPage';
 import { Nueva as ComprasNueva } from '../Pages/Compras/Nueva';
+import { Detalle as ComprasDetalle } from '../Pages/Compras/Detalle';
 // users
 import { Users as Users } from '../Pages/Users';
 import { Login as UsersLogin } from '../Pages/Users/Login';
@@ -40,7 +41,7 @@ export {
     Base, 
     Index, 
     Test, 
-    ComprasPage, ComprasNueva, 
+    ComprasPage, ComprasNueva, ComprasDetalle, 
     Users, UsersLogin, UsersRegister, UsersValidarCuenta, UsersAccount, 
     store, Provider, useStates, 
     GeneralNotification, 

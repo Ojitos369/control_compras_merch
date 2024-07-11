@@ -18,3 +18,5 @@ class GetHostLink(GetApi):
         self.response = {
             'host': url_base
         }
+    def validate_session(self):
+        pass

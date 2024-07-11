@@ -84,6 +84,7 @@ const useF = props => {
                 u2('login', 'data', 'user', {});
                 document.cookie = `${project_key}=; max-age=0; path=/`;
                 u2('loadings', 'users', 'closeSession', false);
+                u0('modals', null);
                 navigate('/users/login');
             });
         },

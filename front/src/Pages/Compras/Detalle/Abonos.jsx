@@ -1,12 +1,36 @@
 import { useVars } from "./myUse";
 import { showCurrency } from "../../../Core/helper";
 
-const Articulos = props => {
-    const { styles, articulos } = useVars();
+const Abonos = props => {
+    const { 
+        styles, toogleDetailView, abonoView, changeAbonoView, 
+        abonoListView, abonoTotalView, 
+        abonosGenerales, abonosExtra, abonosCompra, abonosExtraTotal, abonosTotal, 
+    } = useVars();
 
     return (
-        <div className={`${styles.articulosContainer}`}>
-
+        <div className={`${styles.abonosContainer}`}>
+            <div className={`${styles.abonoViewContainer}`}>
+                <button 
+                    className={`${styles.abonoViewButton} ${abonoView === 'todo' ? styles.abonoViewButtonActive : ''}`}
+                    onClick={() => changeAbonoView('todo')}
+                >
+                    Todo
+                </button>
+                <button 
+                    className={`${styles.abonoViewButton} ${abonoView === 'extra' ? styles.abonoViewButtonActive : ''}`}
+                    onClick={() => changeAbonoView('extra')}
+                >
+                    Extra
+                </button>
+                <button 
+                    className={`${styles.abonoViewButton} ${abonoView === 'compra' ? styles.abonoViewButtonActive : ''}`}
+                    onClick={() => changeAbonoView('compra')}
+                >
+                    Compra
+                </button>
+            </div>
+            
             <div className={`${styles.tableContainer}`}>
                 <div className={`${styles.tableDiv}`}>
                     <table className={`${styles.table} table table-auto`}>
@@ -37,7 +61,7 @@ const Articulos = props => {
                         </thead>
 
                         <tbody>
-                            {articulos.map((ele, i) => {
+                            {abonoListView.map((ele, i) => {
                                 return (<ShowElement
                                     key={i}
                                     ele={ele}
@@ -84,5 +108,5 @@ const ShowElement = props => {
     )
 }
 
-export { Articulos };
+export { Abonos };
 

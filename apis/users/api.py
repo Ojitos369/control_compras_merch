@@ -28,10 +28,14 @@ class Login(NoSession, PostApi):
         
         query = """SELECT *
                     FROM usuarios
-                    WHERE lower(usuario) = %s
-                    or lower(correo) = %s
+                    WHERE lower(usuario) = %(usuario)s
+                    or lower(correo) = %(correo)s
                 """
-        query_data = (user.lower(), user.lower())
+        query_data = {
+            "usuario": user.lower(),
+            "correo": user.lower(),
+        }
+        
         r = self.conexion.consulta_asociativa(query, query_data)
         if not r:
             raise self.MYE("Error en los datos ingresados")
@@ -53,16 +57,16 @@ class Login(NoSession, PostApi):
         query = """INSERT INTO sesiones
                     (id_sesion, sesion, usuario_id, fecha_sesion, caduca, ip_origen)
                     VALUES
-                    (%s, %s, %s, %s, %s, %s)
+                    (%(id_sesion)s, %(sesion)s, %(usuario_id)s, %(fecha_sesion)s, %(caduca)s, %(ip_origen)s)
                 """
-        query_data = (
-            str(uuid.uuid4()),
-            token,
-            usuario["id_usuario"],
-            fecha_sesion,
-            caduca,
-            self.petition_ip,
-        )
+        query_data = {
+            "id_sesion": str(uuid.uuid4()),
+            "sesion": token,
+            "usuario_id": usuario["id_usuario"],
+            "fecha_sesion": fecha_sesion,
+            "caduca": caduca,
+            "ip_origen": self.petition_ip,
+        }
 
         if not self.conexion.ejecutar(query, query_data):
             self.conexion.rollback()
@@ -73,7 +77,7 @@ class Login(NoSession, PostApi):
             self.send_me_error(msg_error)
             raise self.MYE("Error en los datos ingresados")
         self.conexion.commit()
-        
+
         self.response = {
             "usuario": usuario,
         }
@@ -119,15 +123,18 @@ class Register(NoSession, PostApi):
             "telefono": telefono,
             "fecha_nacimiento": fecha_nacimiento,
         }
-        campos = "id_usuario, fecha_creado, fecha_editado, "#validado, activo, "
-        values = "%s, now(), now(), "#true, true, "
-        query_data = [id_usuario]
+        campos = "id_usuario, fecha_creado, fecha_editado, validado, activo, "
+        values = "%(id_usuario)s, now(), now(), %(validado)s, true, "
+        query_data = {
+            "id_usuario": id_usuario,
+            "validado": True,
+        }
 
         for campo, valor in user_data.items():
             if valor:
                 campos += f"{campo}, "
-                values += f"%s, "
-                query_data.append(valor)
+                values += f"%({campo})s, "
+                query_data[campo] = valor
 
         campos = campos[:-2]
         values = values[:-2]

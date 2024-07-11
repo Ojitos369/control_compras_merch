@@ -1,12 +1,35 @@
 import { useVars } from "./myUse";
-import { showCurrency } from "../../../Core/helper";
+import { showCurrency, showDate } from "../../../Core/helper";
 
-const Articulos = props => {
-    const { styles, articulos } = useVars();
+const Cargos = props => {
+    const { 
+        styles, cargoView, changeCargoView, 
+        cargoListView, cargoTotalView,   } = useVars();
+    console.log('cargoListView', cargoListView);
 
     return (
-        <div className={`${styles.articulosContainer}`}>
-
+        <div className={`${styles.cargosContainer}`}>
+            <div className={`${styles.cargoViewContainer}`}>
+                <button 
+                    className={`${styles.cargoViewButton} ${cargoView === 'todo' ? styles.cargoViewButtonActive : ''}`}
+                    onClick={() => changeCargoView('todo')}
+                >
+                    Todo
+                </button>
+                <button 
+                    className={`${styles.cargoViewButton} ${cargoView === 'extra' ? styles.cargoViewButtonActive : ''}`}
+                    onClick={() => changeCargoView('extra')}
+                >
+                    Extra
+                </button>
+                <button 
+                    className={`${styles.cargoViewButton} ${cargoView === 'compra' ? styles.cargoViewButtonActive : ''}`}
+                    onClick={() => changeCargoView('compra')}
+                >
+                    Compra
+                </button>
+            </div>
+            
             <div className={`${styles.tableContainer}`}>
                 <div className={`${styles.tableDiv}`}>
                     <table className={`${styles.table} table table-auto`}>
@@ -16,28 +39,22 @@ const Articulos = props => {
                                     Usuario
                                 </th>
                                 <th>
-                                    Articulo
+                                    Tipo
                                 </th>
                                 <th>
-                                    Cantidad
+                                    Fecha
                                 </th>
                                 <th>
-                                    Precio
+                                    Fecha Limite
                                 </th>
                                 <th>
                                     Total
-                                </th>
-                                <th>
-                                    Abonado
-                                </th>
-                                <th>
-                                    Pendiente
                                 </th>
                             </tr>
                         </thead>
 
                         <tbody>
-                            {articulos.map((ele, i) => {
+                            {cargoListView.map((ele, i) => {
                                 return (<ShowElement
                                     key={i}
                                     ele={ele}
@@ -56,33 +73,27 @@ const Articulos = props => {
 const ShowElement = props => {
     const { ele, index, styles } = props;
     const par = index % 2 === 0;
-    const { cantidad, descripcion, precio, total, total_abonado, usuario } = ele;
+    const { fecha_cargo, fecha_limite, tipo, total, usuario } = ele;
     return (
         <tr className={`${styles[par ? 'par' : 'impar']}`}>
             <td>
                 { usuario }
             </td>
             <td>
-                { descripcion }
+                { tipo }
             </td>
             <td>
-                { cantidad }
+                { showDate(fecha_cargo) }
             </td>
             <td>
-                { showCurrency(precio) }
+                { showDate(fecha_limite, false) }
             </td>
             <td>
                 { showCurrency(total) }
-            </td>
-            <td>
-                { showCurrency(total_abonado) }
-            </td>
-            <td>
-                { showCurrency(total - total_abonado) }
             </td>
         </tr>
     )
 }
 
-export { Articulos };
+export { Cargos };
 

@@ -347,8 +347,10 @@ class GetCompra(GetApi):
         self.compras_det_ids = [i["id_compra_det"] for i in self.compras_det]
 
     def get_cargos(self):
-        query = """SELECT * FROM cargos
-                WHERE compra_id = %s """
+        query = """SELECT c.*, (select usuario from usuarios where id_usuario = c.usuario_id) as usuario
+                FROM cargos c
+                WHERE compra_id = %s
+                """
         query_data = (self.id_compra,)
         self.cargos = self.conexion.consulta_asociativa(query, query_data)
         self.cargos_ids = [i["id_cargo"] for i in self.cargos]
@@ -392,9 +394,10 @@ class GetMyCompras(GetApi):
             return
         query = """SELECT img.*
                 FROM imagenes img
-                WHERE img.usuario_id = %s 
-                AND img.compra_id in %s """
-        query_data = (self.id_usuario, tuple(self.compras_ids))
+                WHERE img.compra_id in %(compras)s """
+        query_data = {
+            "compras": tuple(self.compras_ids),
+        }
         
         images = self.conexion.consulta_asociativa(query, query_data)
         for image in images:

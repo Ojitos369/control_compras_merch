@@ -37,7 +37,7 @@ function AppUI() {
 
     useEffect(() => {
         f.general.getHostLink()
-    }, [s.login?.data?.user]);
+    }, []);
 
     return (
         <div className={`text-[var(--my-minor)]`}>

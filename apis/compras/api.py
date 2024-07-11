@@ -387,6 +387,9 @@ class GetMyCompras(GetApi):
     
     
     def get_images(self):
+        self.images = {}
+        if not self.compras_ids:
+            return
         query = """SELECT img.*
                 FROM imagenes img
                 WHERE img.usuario_id = %s 
@@ -394,7 +397,6 @@ class GetMyCompras(GetApi):
         query_data = (self.id_usuario, tuple(self.compras_ids))
         
         images = self.conexion.consulta_asociativa(query, query_data)
-        self.images = {}
         for image in images:
             if image["compra_id"] not in self.images:
                 self.images[image["compra_id"]] = []

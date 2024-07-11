@@ -311,15 +311,13 @@ class GetCompra(GetApi):
                 where compra_id=c.id_compra
                 and tipo='compra') fecha_limite
                 FROM compras c
-                WHERE c.id_compra = %s
-                AND (c.creado_por = %s OR %s IN (SELECT usuario_id FROM compras_usuarios WHERE compra_id = %s))
+                WHERE c.id_compra = %(id_compra)s
+                AND (c.creado_por = %(id_usuario)s OR %(id_usuario)s IN (SELECT usuario_id FROM compras_usuarios WHERE compra_id = %(id_compra)s))
                 """
-        query_data = (
-            self.id_compra,
-            self.user["id_usuario"],
-            self.user["id_usuario"],
-            self.id_compra,
-        )
+        query_data = {
+            "id_compra": self.id_compra,
+            "id_usuario": self.user["id_usuario"],
+        }
         compra = self.conexion.consulta_asociativa(query, query_data)
         if not compra:
             self.send_me_error("No se encontró la compra")
@@ -341,24 +339,30 @@ class GetCompra(GetApi):
                         and tipo = 'compra'
                         and usuario_id = cd.usuario_id) total_abonado
                 FROM compras_det cd, usuarios u
-                WHERE compra_id = %s AND cd.usuario_id = u.id_usuario """
-        query_data = (self.id_compra,)
+                WHERE compra_id = %(id_compra)s AND cd.usuario_id = u.id_usuario """
+        query_data = {
+            "id_compra": self.id_compra,
+        }
         self.compras_det = self.conexion.consulta_asociativa(query, query_data)
         self.compras_det_ids = [i["id_compra_det"] for i in self.compras_det]
 
     def get_cargos(self):
         query = """SELECT c.*, (select usuario from usuarios where id_usuario = c.usuario_id) as usuario
                 FROM cargos c
-                WHERE compra_id = %s
+                WHERE compra_id = %(id_compra)s
                 """
-        query_data = (self.id_compra,)
+        query_data = {
+            "id_compra": self.id_compra,
+        }
         self.cargos = self.conexion.consulta_asociativa(query, query_data)
         self.cargos_ids = [i["id_cargo"] for i in self.cargos]
     
     def get_abonos(self):
         query = """SELECT * FROM abonos
-                WHERE compra_id = %s """
-        query_data = (self.id_compra,)
+                WHERE compra_id = %(id_compra)s """
+        query_data = {
+            "id_compra": self.id_compra,
+        }
         self.abonos = self.conexion.consulta_asociativa(query, query_data)
         self.abonos_ids = [i["id_abono"] for i in self.abonos]
 
@@ -380,8 +384,10 @@ class GetMyCompras(GetApi):
     def get_detalles(self):
         query = """SELECT *
                 FROM compras_det
-                WHERE usuario_id = %s """
-        query_data = (self.id_usuario,)
+                WHERE usuario_id = %(id_usuario)s """
+        query_data = {
+            "id_usuario": self.id_usuario,
+        }
         
         r = self.conexion.consulta_asociativa(query, query_data)
         compras_ids = list(set([i["compra_id"] for i in r]))
@@ -411,42 +417,37 @@ class GetMyCompras(GetApi):
                         (select count(*) 
                         from compras_det 
                         where compra_id=c.id_compra
-                        and usuario_id=%s) as articulos,
+                        and usuario_id=%(id_usuario)s) as articulos,
                         (select sum(cantidad)
                         from compras_det 
                         where compra_id=c.id_compra
-                        and usuario_id=%s) as cantidad_items,
+                        and usuario_id=%(id_usuario)s) as cantidad_items,
                         (select sum(total)
                         from compras_det
                         where compra_id=c.id_compra
-                        and usuario_id=%s) as total_deuda,
+                        and usuario_id=%(id_usuario)s) as total_deuda,
                         (select sum(cantidad)
                         from abonos
                         where compra_id=c.id_compra
-                        and usuario_id=%s) as total_abonado,
+                        and usuario_id=%(id_usuario)s) as total_abonado,
                         (select min(fecha_limite)
                         from cargos
                         where compra_id=c.id_compra
-                        and usuario_id=%s) as fecha_limite
+                        and usuario_id=%(id_usuario)s) as fecha_limite
                     from (SELECT *
                     FROM compras
-                    WHERE id_compra IN %s
+                    WHERE id_compra IN %(compras_ids)s
                     UNION
                     SELECT *
                     FROM compras
-                    WHERE creado_por = %s) c
+                    WHERE creado_por = %(id_usuario)s) c
                     
                     ORDER BY c.fecha_compra DESC
                 """
-            query_data = (
-                self.id_usuario, 
-                self.id_usuario, 
-                self.id_usuario, 
-                self.id_usuario, 
-                self.id_usuario, 
-                tuple(self.compras_ids), 
-                self.id_usuario
-            )
+            query_data = {
+                "compras_ids": tuple(self.compras_ids),
+                "id_usuario": self.id_usuario,
+            }
         else:
             query = """SELECT *
                     FROM compras

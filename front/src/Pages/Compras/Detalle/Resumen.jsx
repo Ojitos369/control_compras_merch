@@ -1,7 +1,7 @@
 import { useVars } from "./myUse";
 
 const Resumen = props => {
-    const { styles } = useVars();
+    const { styles, imagenes } = useVars();
     return (
         <div className={`${styles.resumenContainer}`}>
             Resumen

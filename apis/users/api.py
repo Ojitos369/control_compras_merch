@@ -119,8 +119,8 @@ class Register(NoSession, PostApi):
             "telefono": telefono,
             "fecha_nacimiento": fecha_nacimiento,
         }
-        campos = "id_usuario, fecha_creado, fecha_editado, validado, activo, "
-        values = "%s, now(), now(), true, true, "
+        campos = "id_usuario, fecha_creado, fecha_editado, "#validado, activo, "
+        values = "%s, now(), now(), "#true, true, "
         query_data = [id_usuario]
 
         for campo, valor in user_data.items():

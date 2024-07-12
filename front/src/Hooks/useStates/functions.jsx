@@ -164,6 +164,13 @@ const useF = props => {
             u1("general", "notification", props);
             u2("modals", "general", "notification", true);
         },
+        convertLink: link => {
+            if (!link) return '';
+            if (link.includes('http')) {
+                return link;
+            }
+            return `https://${link}`;
+        },
         getUuid: () => {
             return uuidv4();
         },

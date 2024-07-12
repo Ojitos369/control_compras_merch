@@ -5,7 +5,7 @@ import { Link } from "react-router-dom";
 
 const ShowElement = props => {
     const { element } = props;
-    const { styles, imgLink } = useVars();
+    const { styles, imgLink, convertLink } = useVars();
     const { 
         id_compra, 
         articulos, descripcion_compra, fecha_compra, link, nombre_compra, origen,
@@ -122,7 +122,7 @@ const ShowElement = props => {
                     <div className={`${styles.row} ${styles.row1}`}>
                         <div className={`${styles.item}`}>
                             <a 
-                                href={link}
+                                href={convertLink(link)}
                                 target="_blank"
                                 className={`${styles.bigText}`}>Ir a la publicacion</a>
                         </div>

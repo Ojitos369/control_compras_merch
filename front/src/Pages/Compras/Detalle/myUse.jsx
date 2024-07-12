@@ -83,18 +83,10 @@ const useVars = props => {
         f.u2('compras', 'consulta', 'imageSelected', {...newImage, url});
     }
 
-    const convertLink = link => {
-        if (!link) return '';
-        if (link.includes('http')) {
-            return link;
-        }
-        return `https://${link}`;
-    }
-
     return {
         styles, imgLink, 
         cargandoCompra, 
-        compra_id, compra, convertLink, 
+        compra_id, compra, convertLink: f.general.convertLink, 
         imagenes, articulos, 
         toogleDetailView, detailView,
         cargoView, changeCargoView, 

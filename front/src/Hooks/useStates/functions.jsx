@@ -285,6 +285,39 @@ const useF = props => {
             }).finally(() => {
                 u2('loadings', 'compras', 'getCompra', false);
             });
+        },
+        guardarCargo: (compra_id, usuarios) => {
+            if (s.loadings?.compras?.guardarCargo) return;
+            u2('loadings', 'compras', 'guardarCargo', true);
+
+            const end = 'compras/guardar_cargo/';
+            const data = {
+                compra_id, usuarios,
+                ...s.compras?.newCargo?.data || {}
+            }
+
+            miAxios.post(end, data)
+            .then(response => {
+                const message = response.data.message;
+                general.notificacion({
+                    mode: 'success',
+                    title: 'Guardado con exito',
+                    message: message || "Guardado con exito"
+                });
+                u2('modals', 'compras', 'agregarCargo', false);
+                u2('compras', 'newCargo', 'data', null);
+                compras.getCompra(compra_id);
+            }).catch(error => {
+                const message = error.response.data.message;
+                general.notificacion({
+                    mode: 'danger',
+                    title: 'Error al guardar',
+                    message: message || "Error al guardar"
+                });
+            }).finally(() => {
+                u2('loadings', 'compras', 'guardarCargo', false);
+            });
+
         }
     }
 

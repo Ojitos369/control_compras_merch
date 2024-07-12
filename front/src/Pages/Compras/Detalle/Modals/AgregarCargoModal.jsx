@@ -1,11 +1,17 @@
+import { useEffect } from "react";
 import { GeneralModal } from "../../../../Components/Modals/GeneralModal";
+import { useStates } from "../../../../Hooks/useStates";
 import { useVars } from "../myUse";
 
 const Component = props => {
-    const { styles, usuarios, newCargo, updateNewCargo, guardarCargo, closeModals } = useVars();
-    const { total, fecha_limite, tipo, perUser } = newCargo;
-    console.log('usuarios', usuarios);
+    const { f } = useStates();
+    const { styles, usuarios, newCargo, upgradePerUserCargo, updateNewCargo, guardarCargo, closeModals } = useVars();
+    const { total=0, fecha_limite='', tipo='', perUser={} } = newCargo;
+    // console.log('usuarios', usuarios);
 
+    useEffect(() => {
+        f.u2('compras', 'newCargo', 'data', null);
+    }, []);
     return (
         <div className={`${styles.agregarCargoModal}`}>
             <h3 className={`${styles.acTitle}`}>
@@ -51,10 +57,30 @@ const Component = props => {
                             type="text"
                             value={tipo}
                             placeholder="EMS, Envio, etc."
-                            onChange={e => updateNewCargo('total', e.target.value)}
+                            onChange={e => updateNewCargo('tipo', e.target.value)}
                         />
                     </div>
                 </div>
+
+                {usuarios.map((usuario, index) => {
+                    const cantidad = total ? (perUser[usuario.compra_det_id] ?? Number(usuario.porcentaje * total / 100).toFixed(2)) : 0;
+                    const user = usuario.usuario;
+                    return (
+                        <div className={`${styles.acFormRow}`} key={`perUser_${index}`}>
+                            <div className={`${styles.acInputElement}`}>
+                                <label className={`${styles.acLabel}`}>
+                                    {user} ({usuario.descripcion})
+                                </label>
+                                <input 
+                                    className={`${styles.acInput}`}
+                                    type="number"
+                                    value={cantidad}
+                                    onChange={e => upgradePerUserCargo(usuario.id_usuario, e.target.value)}
+                                />
+                            </div>
+                        </div>
+                    )
+                })}
 
                 <div className={`${styles.acFormActions}`}>
                     <span 

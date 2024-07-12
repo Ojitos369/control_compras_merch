@@ -5,7 +5,6 @@ const Cargos = props => {
     const { 
         styles, cargoView, changeCargoView, 
         cargoListView, cargoTotalView,   } = useVars();
-    console.log('cargoListView', cargoListView);
 
     return (
         <div className={`${styles.cargosContainer}`}>

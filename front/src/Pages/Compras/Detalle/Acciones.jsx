@@ -1,9 +1,10 @@
 import { useVars } from "./myUse";
 import { Piggy, Revenue, MoneyMouthFace } from "../../../Components/Icons";
 const Acciones = props => {
-    const { styles, agregarAbono, agregarCargo } = useVars();
+    const { styles, agregarAbono, agregarCargo, creadorCompra } = useVars();
     return (
         <div className={`${styles.accionesContainer}`}>
+            {creadorCompra && 
             <div className={`${styles.actionDiv}`}>
                 <span 
                     data-tooltip-id="global" data-tooltip-content="Agregar Cargo Alt+C"
@@ -11,7 +12,8 @@ const Acciones = props => {
                     onClick={agregarCargo}>
                     <MoneyMouthFace />
                 </span>
-            </div>
+            </div>}
+            {creadorCompra && 
             <div className={`${styles.actionDiv}`}>
                 <span 
                     data-tooltip-id="global" data-tooltip-content="Agregar Abono Alt+A"
@@ -19,7 +21,7 @@ const Acciones = props => {
                     onClick={agregarAbono}>
                     <Piggy />
                 </span>
-            </div>
+            </div>}
         </div>
     )
 }

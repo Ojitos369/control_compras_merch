@@ -111,13 +111,10 @@ class ValidarImagenesNoGuardadas(GetApi):
 class GuardarCompra(PostApi):
     def main(self):
         self.show_me()
-        from ojitos369.utils import print_json as pj
-        # pj(self.data)
         self.id_compra = self.data["id"]
         self.get_usuarios()
         self.guardar_compra()
         self.guardar_detalles()
-        self.guardar_usuarios()
 
     def get_usuarios(self):
         usuarios = [i["usuario"].lower() for i in self.data["items"]]
@@ -181,6 +178,11 @@ class GuardarCompra(PostApi):
                 (id_kardex, usuario_id, cantidad, tipo, tipo_id, comentario, movimiento)
                 VALUES
                 (:id_kardex, :usuario_id, :cantidad, 'compra', :tipo_id, 'compra inicial', 'S') """
+            
+        query_4 = """INSERT INTO compras_usuarios
+                (id_compra_usuario, usuario_id, compra_id, compra_det_id, total_correspondiente, porcentaje)
+                VALUES
+                (:id_compra_usuario, :usuario_id, :compra_id, :compra_det_id, :total_correspondiente, :porcentaje) """
 
         for item in self.data["items"]:
             user = item["usuario"].lower()
@@ -234,29 +236,23 @@ class GuardarCompra(PostApi):
                 self.conexion.rollback()
                 raise Exception("Error al guardar el kardex de la compra")
             self.conexion.commit()
-
-    def guardar_usuarios(self):
-        query = """INSERT INTO compras_usuarios
-                (id_compra_usuario, usuario_id, compra_id, total_correspondiente, porcentaje)
-                VALUES
-                (:id_compra_usuario, :usuario_id, :compra_id, :total_correspondiente, :porcentaje) """
-
-        for usuario_id, total in self.totales_usuario.items():
+            
             id_compra_usuario = str(uuid.uuid4())
-            porcentaje = round(total / self.data["total"] * 100, 2)
+            porcentaje = round(total_precio / self.data["total"] * 100, 2)
 
             query_data = {
                 "id_compra_usuario": id_compra_usuario,
                 "usuario_id": usuario_id,
                 "compra_id": self.id_compra,
-                "total_correspondiente": total,
+                "compra_det_id": id_compra_det,
+                "total_correspondiente": total_precio,
                 "porcentaje": porcentaje
             }
-            if not(self.conexion.ejecutar(query, query_data)):
+            if not(self.conexion.ejecutar(query_4, query_data)):
                 self.conexion.rollback()
                 raise Exception("Error al guardar los usuarios de la compra")
             self.conexion.commit()
-
+            
 
 class GetCompra(GetApi):
     def main(self):
@@ -350,7 +346,7 @@ class GetCompra(GetApi):
         }
         self.cargos = self.conexion.consulta_asociativa(query, query_data)
         self.cargos_ids = [i["id_cargo"] for i in self.cargos]
-    
+
     def get_abonos(self):
         query = """SELECT * FROM abonos
                 WHERE compra_id = :id_compra """
@@ -361,10 +357,11 @@ class GetCompra(GetApi):
         self.abonos_ids = [i["id_abono"] for i in self.abonos]
     
     def get_usuarios(self):
-        query = """SELECT u.usuario, cu.porcentaje
-                FROM compras_usuarios cu, usuarios u
+        query = """SELECT u.usuario, cu.porcentaje, u.id_usuario, cd.descripcion, cu.compra_det_id
+                FROM compras_usuarios cu, usuarios u, compras_det cd
                 WHERE cu.compra_id = :id_compra
                 AND cu.usuario_id = u.id_usuario
+                AND cd.id_compra_det = cu.compra_det_id
                 """
         query_data = {
             "id_compra": self.id_compra,
@@ -468,6 +465,134 @@ class GetMyCompras(GetApi):
         for c in self.compras:
             c["images"] = self.images.get(c["id_compra"], [])
 
+
+class GuardarCargo(PostApi):
+    def main(self):
+        self.show_me()
+        self.validarCreador()
+        self.add_cargo()
+    
+    def validarCreador(self):
+        compra_id = self.data["compra_id"]
+        query = """SELECT creado_por
+                FROM compras
+                WHERE id_compra = :compra_id """
+        query_data = {
+            "compra_id": compra_id,
+        }
+        compra = self.conexion.consulta_asociativa(query, query_data)
+        if not compra:
+            raise self.MYE("No se encontró la compra")
+        if (compra[0]["creado_por"] != self.user["id_usuario"]):
+            raise self.MYE("No tienes permiso para realizar esta acción")
+
+    def add_cargo(self):
+        total = self.data["total"]
+        fecha_limite = self.data["fecha_limite"]
+        tipo = self.data["tipo"]
+        compra_id = self.data["compra_id"]
+        perUser = get_d(self.data, "perUser", default={})
+        query = """INSERT INTO cargos
+                (id_cargo, usuario_id, compra_det_id, compra_id, total, fecha_limite, tipo)
+                VALUES
+                (:id_cargo, :usuario_id, :compra_det_id, :compra_id, :total, :fecha_limite, :tipo) """
+            
+        query_data = {
+            "compra_id": compra_id,
+            "fecha_limite": fecha_limite,
+            "tipo": tipo,
+        }
+
+        for user in self.data["usuarios"]:
+            id_cargo = str(uuid.uuid4())
+            compra_det_id = user["compra_det_id"]
+            if compra_det_id in perUser and not perUser[compra_det_id]:
+                continue
+            query_data["id_cargo"] = id_cargo
+            query_data["usuario_id"] = user["id_usuario"]
+            query_data["compra_det_id"] = compra_det_id
+            
+            if compra_det_id in perUser:
+                query_data["total"] = float(perUser[compra_det_id])
+            else:
+                porcentaje = user["porcentaje"]
+                query_data["total"] = round(float(total) * porcentaje / 100, 2)
+
+            if not(self.conexion.ejecutar(query, query_data)):
+                self.conexion.rollback()
+                raise Exception("Error al guardar el cargo")
+            self.conexion.commit()
+            
+            self.add_kardex(user["id_usuario"], query_data["total"], id_cargo, tipo)
+        
+    def add_kardex(self, usuario_id, cantidad, tipo_id, tipo_cargo):
+        id_kardex = str(uuid.uuid4())
+        tipo = "cargo"
+        comentario = f"cargo por {tipo_cargo}"
+
+        ''' 
+        query = """ INSERT INTO kardex
+                (id_kardex, usuario_id, cantidad, tipo, tipo_id, comentario, movimiento)
+                VALUES
+                (:id_kardex, :usuario_id, :cantidad, :tipo, :tipo_id, :comentario, 'S')
+            """
+        query_data = {
+            "id_kardex": str(id_kardex),
+            "usuario_id": str(usuario_id),
+            "cantidad": float(cantidad),
+            "tipo": str(tipo),
+            "tipo_id": str(tipo_id),
+            "comentario": str(comentario),
+        } 
+        '''
+        query = """ INSERT INTO kardex
+                (id_kardex, usuario_id, cantidad, tipo, tipo_id, comentario, movimiento)
+                VALUES
+                (%s, %s, %s, %s, %s, %s, 'S')
+            """
+        query_data = (
+            str(id_kardex),
+            str(usuario_id),
+            float(cantidad),
+            str(tipo),
+            str(tipo_id),
+            str(comentario),
+        )
+        if not(self.conexion.ejecutar(query, query_data)):
+            self.conexion.rollback()
+            raise Exception("Error al guardar el kardex")
+        self.conexion.commit()
+
+    def example_data(self):
+        data = {
+            "compra_id": "1b745759-3db4-4c3b-9a8c-bbd9812b8e01",
+            "usuarios": [
+                {
+                    "usuario": "test",
+                    "porcentaje": 4.86,
+                    "id_usuario": "cf25556b-dda2-4117-8126-f160ac7ac1ad",
+                    "descripcion": "art1"
+                },
+                {
+                    "usuario": "test2",
+                    "porcentaje": 8.77,
+                    "id_usuario": "72aeeed5-e301-4843-b579-4db9ea3a44b7",
+                    "descripcion": "art2"
+                },
+                {
+                    "usuario": "ojitos369",
+                    "porcentaje": 86.37,
+                    "id_usuario": "e66a184d-8d5e-4a70-917c-45767bbaacfb",
+                    "descripcion": "art3"
+                }
+            ],
+            "total": "149.83",
+            "perUser": {
+                "e66a184d-8d5e-4a70-917c-45767bbaacfb": "101.7"
+            },
+            "tipo": "ems",
+            "fecha_limite": "2024-07-31"
+        }
 
 """ 
 

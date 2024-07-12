@@ -146,6 +146,10 @@ body::-webkit-scrollbar {
     height: 35px;
 }
 
+input {
+    color: #000;
+}
+
 .btn {
     border-radius: 35px;
     display: flex;

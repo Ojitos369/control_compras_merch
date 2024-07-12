@@ -18,6 +18,7 @@ const useVars = props => {
     const showAgregarCargo = useMemo(() => s.modals?.compras?.agregarCargo, [s.modals?.compras?.agregarCargo]);
     const showAgregarAbono = useMemo(() => s.modals?.compras?.agregarAbono, [s.modals?.compras?.agregarAbono]);
     const newCargo = useMemo(() => s.compras?.newCargo?.data || {}, [s.compras?.newCargo?.data]);
+    const creadorCompra = useMemo(() => compra.creado_por === s.login?.data?.user?.id_usuario, [compra.creado_por, s.login?.data?.user?.id_usuario]);
 
     const keyExec = useMemo(() => {
         const comprasKeys = Object.keys(s.modals?.compras || {});
@@ -103,10 +104,12 @@ const useVars = props => {
 
     const agregarCargo = e => {
         if (!!e) e.preventDefault();
+        if (!creadorCompra) return;
         f.u2('modals', 'compras', 'agregarCargo', true);
     }
     const agregarAbono = e => {
         if (!!e) e.preventDefault();
+        if (!creadorCompra) return;
         console.log('agregarAbono');
     }
 
@@ -125,17 +128,39 @@ const useVars = props => {
         f.u3('compras', 'newCargo', 'data', key, value);
     }
 
+    const upgradePerUserCargo = (id, value) => {
+        f.u4('compras', 'newCargo', 'data', 'perUser', id, value);
+    };
+
     const guardarCargo = e => {
         if (!!e) e.preventDefault();
-        console.log('guardarCargo');
+        if (!creadorCompra) return;
+        f.compras.guardarCargo(compra_id, usuarios, creadorCompra);
     }
+
+    const updateNewAbono = (key, value) => {
+        f.u3('compras', 'newAbono', 'data', key, value);
+    }
+
+    const upgradePerUserAbono = (id, value) => {
+        f.u4('compras', 'newAbono', 'data', 'perUser', id, value);
+    };
+
+    const guardarAbono = e => {
+        if (!!e) e.preventDefault();
+        if (!creadorCompra) return;
+        f.compras.guardarAbono(compra_id, usuarios, creadorCompra);
+    }
+
 
     return {
         styles, imgLink, 
         cargandoCompra, 
-        compra_id, compra, convertLink: f.general.convertLink, 
+        compra_id, compra, convertLink: f.general.convertLink, creadorCompra, 
         imagenes, articulos, 
         toogleDetailView, detailView,
+        cargosExtra, cargosCompra, cargosExtraTotal, cargosTotal, 
+        abonosExtra, abonosCompra, abonosExtraTotal, abonosTotal, 
         cargoView, changeCargoView, 
         cargoListView, cargoTotalView, 
         abonoView, changeAbonoView,
@@ -144,14 +169,14 @@ const useVars = props => {
         usuarios, 
         agregarCargo, agregarAbono, 
         showAgregarCargo, showAgregarAbono, 
-        newCargo, updateNewCargo, guardarCargo, 
+        newCargo, updateNewCargo, upgradePerUserCargo, guardarCargo, 
         validaMK, keyExec, closeModals, 
     }
 }
 
 const useMyEffects = props => {
     const { f } = useStates();
-    const { compra_id, chageImageSelected, imagenes } = useVars();
+    const { compra_id, chageImageSelected, imagenes, newCargo, usuarios } = useVars();
 
     useEffect(()  => {
         f.compras.getCompra(compra_id);
@@ -160,6 +185,17 @@ const useMyEffects = props => {
     useEffect(() => {
         chageImageSelected(0);
     }, [compra_id, imagenes.length]);
+
+    // useEffect(() => {
+    //     let total = 0;
+    //     usuarios.map(u => {
+    //         const { perUser={} } = newCargo;
+    //         const value = perUser[u.id_usuario] ?? Number(u.porcentaje * newCargo.total / 100).toFixed(2);
+    //         total += Number(value);
+    //     });
+    //     const abs = Math.abs(total - newCargo.total);
+    //     // if (abs > 5) f.u3('compras', 'newCargo', 'data', 'total', total);
+    // }, [newCargo.total, newCargo.perUser, usuarios]);
 }
 
 

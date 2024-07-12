@@ -2,7 +2,7 @@ import { useVars } from "./myUse";
 import { showCurrency, showDate } from "../../../Core/helper";
 
 const Generales = props => {
-    const { styles, compra, abonosExtraTotal, cargosExtraTotal, abonosTotal, cargosTotal } = useVars();
+    const { styles, compra, abonosExtraTotal, cargosExtraTotal, abonosTotal, cargosTotal, convertLink } = useVars();
     const { descripcion_compra, fecha_compra, link, nombre_compra, origen, fecha_limite, total, total_abonado=0 } = compra;
 
     return (
@@ -20,7 +20,7 @@ const Generales = props => {
                 <p className={`${styles.origenLabel}`}>
                     Origen:
                 </p>
-                <a href={link} target='_blank' className={`${styles.origen}`}>
+                <a href={convertLink(link)} target='_blank' className={`${styles.origen}`}>
                     {origen}
                 </a>
             </div>

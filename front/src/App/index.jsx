@@ -39,6 +39,24 @@ function AppUI() {
         f.general.getHostLink()
     }, []);
 
+    useEffect(() => { 
+        const handleFocus = () => {
+            f.u1('shortCuts', 'keys', {});
+        };
+        
+        const handleBlur = () => {
+            f.u1('shortCuts', 'keys', {});
+        };
+    
+        window.addEventListener('focus', handleFocus);
+        window.addEventListener('blur', handleBlur);
+    
+        return () => {
+        window.removeEventListener('focus', handleFocus);
+        window.removeEventListener('blur', handleBlur);
+        };
+    }, []);
+
     return (
         <div className={`text-[var(--my-minor)]`}>
             <BgTheme />

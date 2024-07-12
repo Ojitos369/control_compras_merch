@@ -55,7 +55,7 @@ const GeneralModal = props => {
             ref={modalRef}
             >
             <div 
-                className={`flex ${styles.modal_container} ${styles[props?.modal_container_w || "modal_container_50"]} pb-5 pt-5 ${styles.my_modal}`}
+                className={`flex ${styles.modal_container} ${styles[(props.modal_container_w || props.cw) || "modal_container_50"]} pb-5 pt-5 ${styles.my_modal}`}
                 onClick={e => e.stopPropagation()}
                 style={{...borderStyle}}
                 >

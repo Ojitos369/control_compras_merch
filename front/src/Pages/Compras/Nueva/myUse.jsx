@@ -20,7 +20,7 @@ const useVars = props => {
 
     const fields = useMemo(() => [
         {label: 'Usuario', name: 'usuario', type: 'text',
-            default: s.login?.data?.user?.usuario || '',
+            default: s.login?.data?.user?.usuario ?? '',
         },
         {label: 'Descripcion', name: 'descripcion_compra', type: 'text',
             required: true

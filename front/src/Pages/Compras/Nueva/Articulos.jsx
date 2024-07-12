@@ -31,7 +31,7 @@ const Articulos = props => {
                                             <label htmlFor={field.name}>{field.label}</label>
                                             <input
                                                 type={field.type}
-                                                value={value || ''}
+                                                value={value ?? ''}
                                                 placeholder={field.placeholder || ''}
                                                 id={`${field.name}_${index}`}
                                                 onChange={e => upgradeData(index, field.name, e.target.value)}

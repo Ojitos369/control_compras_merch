@@ -15,16 +15,11 @@
         justify-content: start;
         .actionDiv {
             padding: 5px 10px;
-            .actionButton {
-                background-color: var(--ty);
-                color: white;
-                padding: 7px 15px;
-                font-size: 1.1rem;
-                border-radius: 10px;
-                cursor: pointer;
-                &:hover {
-                    background-color: var(--jy);
-                    color: #000;
+            .actionIcon {
+                svg {
+                    width: 25px;
+                    height: 25px;
+                    cursor: pointer;
                 }
             }
         }
@@ -313,6 +308,84 @@
                                     color: var(--my-primary);
                                 }
                             }
+                        }
+                    }
+                }
+            }
+        }
+    }
+    .agregarCargoModal {
+        width: 100%;
+        .acTitle {
+            width: 100%;
+            text-align: center;
+            font-size: 1.5em;
+            color: var(--sn);
+            font-weight: bold;
+        }
+        .acForm {
+            width: 100%;
+            display: flex;
+            flex-wrap: wrap;
+            justify-content: center;
+            .acFormRow {
+                width: 90%;
+                display: flex;
+                flex-wrap: wrap;
+                justify-content: around;
+                margin-bottom: 5px;
+                @include md {
+                    width: 30%;
+                }
+                .acInputElement {
+                    padding: 0 15px;
+                    .acLabel {
+                        width: 100%;
+                        text-align: start;
+                        font-size: 1em;
+                        margin: 0;
+                    }
+                    .acInput {
+                        width: 100%;
+                        padding: 5px;
+                        font-size: 1em;
+                        border: 1px solid #888;
+                        border-radius: 5px;
+                    }
+                }
+            }
+            .acFormActions {
+                width: 100%;
+                display: flex;
+                flex-wrap: wrap;
+                justify-content: space-around;
+                margin: 20px 0;
+                .acButton {
+                    width: 90%;
+                    padding: 5px;
+                    font-size: 1em;
+                    font-weight: bold;
+                    text-align: center;
+                    cursor: pointer;
+                    margin-bottom: 5px;
+                    border-radius: 7px;
+                    @include md {
+                        width: 40%;
+                    }
+                    &.acButtonCancel {
+                        background-color: var(--cy);
+                        color: #000;
+                        &:hover {
+                            background-color: var(--mm);
+                            color: #000;
+                        }
+                    }
+                    &.acButtonSave {
+                        background-color: var(--mn);
+                        color: #000;
+                        &:hover {
+                            background-color: var(--jy);
+                            color: #000;
                         }
                     }
                 }

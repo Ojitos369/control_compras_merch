@@ -2,6 +2,7 @@ import { useVars } from "./myUse";
 
 const Images = props => {
     const { styles, actualImage, indexImage, lenImages, chageImageSelected } = useVars();
+    if (!lenImages) return null;
     return (
         <div className={`${styles.imagesContainer}`}>
             <div 

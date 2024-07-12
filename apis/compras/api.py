@@ -204,8 +204,7 @@ class GuardarCompra(PostApi):
             if not(self.conexion.ejecutar(query, query_data)):
                 self.conexion.rollback()
                 raise Exception("Error al guardar los detalles de la compra")
-            self.totales_usuario[usuario_id] += int(item["precio"]) * int(item["cantidad"])
-            
+
             id_cargo = str(uuid.uuid4())
             # id_cargo, usuario_id, compra_det_id, total, fecha_limite
             query_data = {
@@ -269,6 +268,7 @@ class GetCompra(GetApi):
         self.get_compras_det()
         self.get_cargos()
         self.get_abonos()
+        self.get_usuarios()
         
         self.response = {
             "compra": {
@@ -277,6 +277,7 @@ class GetCompra(GetApi):
                 "articulos": self.compras_det,
                 "cargos": self.cargos,
                 "abonos": self.abonos,
+                "usuarios": self.usuarios,
             }
         }
 
@@ -358,6 +359,17 @@ class GetCompra(GetApi):
         }
         self.abonos = self.conexion.consulta_asociativa(query, query_data)
         self.abonos_ids = [i["id_abono"] for i in self.abonos]
+    
+    def get_usuarios(self):
+        query = """SELECT u.usuario, cu.porcentaje
+                FROM compras_usuarios cu, usuarios u
+                WHERE cu.compra_id = :id_compra
+                AND cu.usuario_id = u.id_usuario
+                """
+        query_data = {
+            "id_compra": self.id_compra,
+        }
+        self.usuarios = self.conexion.consulta_asociativa(query, query_data)
 
 
 class GetMyCompras(GetApi):

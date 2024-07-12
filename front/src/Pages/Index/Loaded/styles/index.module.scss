@@ -33,11 +33,11 @@
                 white-space: nowrap;
                 margin: 5px 10px;
                 border-radius: 15px;
-                border: solid 1px var(--my-minor);
-                color: var(--my-minor);
+                border: solid 2px var(--tw);
+                color: var(--tw);
                 &:hover {
-                    background-color: var(--my-minor);
-                    color: var(--my-major);
+                    background-color: var(--tw);
+                    color: #000;
                 }
                 .icon {
                     svg {

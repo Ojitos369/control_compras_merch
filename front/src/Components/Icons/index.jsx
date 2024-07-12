@@ -110,7 +110,11 @@ const AnimateRemove = props => {
 
 // -----------------------------------   UNIQUES   ----------------------------------- //
 const CcmLogo = props => {
-    const stroke = props.stroke || '#000000';
+    const style = {
+        fill: 'none',
+        stroke: 'var(--tw)',
+        strokeWidth: '9.6'
+    }
     return (
         <svg xmlns="http://www.w3.org/2000/svg" 
             xlink="http://www.w3.org/1999/xlink"
@@ -119,13 +123,13 @@ const CcmLogo = props => {
             width="245.76pt"
             height="245.76pt"
             viewBox="0 0 245.76 245.76">
-            <path id="shape0" transform="translate(19.9774573094849, 62.0910827919216)" fill="none" stroke={stroke} strokeWidth="9.5999904" strokeLinecap="square" strokeLinejoin="bevel" d="M54.0234 3.92195C19.9221 -19.0947 -26.1784 65.6604 18.4397 90.2999C49.7959 107.616 90.6617 103.411 124.88 101.857C136.486 101.329 148.066 100.79 159.66 100.026C165.479 99.6422 182.42 96.2919 177.102 98.6847" nodetypes="ccccc"/>
-            <path id="shape1" transform="translate(52.4061863957115, 84.1833780393964)" fill="none" stroke={stroke} strokeWidth="9.5999904" strokeLinecap="square" strokeLinejoin="bevel" d="M25.534 3.0189C0.850915 -13.6409 -16.2836 43.856 24.4455 48.8259C25.987 49.014 39.9204 48.0714 39.1403 47.0184" nodetypes="ccc"/>
-            <path id="shape2" transform="translate(82.5533858267711, 85.5790993215724)" fill="none" stroke={stroke} strokeWidth="9.5999904" strokeLinecap="square" strokeLinejoin="bevel" d="M0 25.8561C5.5679 15.8347 27.8626 -15.2249 40.0414 9.08665C52.7987 34.553 30.8928 52.1189 30.8928 75.4415C30.8928 75.8713 30.4053 78.2992 30.8409 77.3191" nodetypes="cccc"/>
-            <path id="shape3" transform="translate(123.625296657724, 77.7929432469583)" fill="none" stroke={stroke} strokeWidth="9.5999904" strokeLinecap="square" strokeLinejoin="bevel" d="M0.161655 16.7795C-1.30703 10.8318 7.60334 5.76751 11.8501 3.80007C64.9673 -20.808 29.1139 82.1352 28.5146 82.5397" nodetypes="ccc"/>
-            <path id="shape4" transform="translate(163.776512935882, 79.5844264480792)" fill="none" stroke={stroke} strokeWidth="9.5999904" strokeLinecap="square" strokeLinejoin="bevel" d="M0 9.18052C8.83574 1.22895 27.0425 -5.81293 36.5685 7.268C48.2484 23.3064 32.6979 47.1136 31.3852 64.0953C31.1259 67.4495 34.9425 78.9461 33.303 81.1913" nodetypes="cccc"/>
-            <path id="shape5" transform="translate(57.1653472233885, 164.927294541091)" fill="none" stroke={stroke} strokeWidth="9.5999904" strokeLinecap="square" strokeLinejoin="bevel" d="M14.9954 0C6.16934 3.97144 1.2282 10.3273 0.196947 20.4896C-4.34861 65.2827 71.6011 43.7825 41.0158 2.4956" nodetypes="ccc"/>
-            <path id="shape6" transform="translate(157.113841598665, 160.775740851828)" fill="none" stroke={stroke} strokeWidth="9.5999904" strokeLinecap="square" strokeLinejoin="bevel" d="M1.53939 2.06433C0.326444 0.972765 -0.0991571 14.0878 0.0189368 14.6745C2.46407 26.821 7.39862 35.477 20.9078 35.0124C36.9762 34.4598 47.0702 17.7554 41.3994 3.2305C40.5954 1.17115 38.5338 0.500593 39.9657 0" nodetypes="ccccc"/>
+            <path id="shape0" transform="translate(19.9774573094849, 62.0910827919216)" style={style} strokeLinecap="square" strokeLinejoin="bevel" d="M54.0234 3.92195C19.9221 -19.0947 -26.1784 65.6604 18.4397 90.2999C49.7959 107.616 90.6617 103.411 124.88 101.857C136.486 101.329 148.066 100.79 159.66 100.026C165.479 99.6422 182.42 96.2919 177.102 98.6847" nodetypes="ccccc"/>
+            <path id="shape1" transform="translate(52.4061863957115, 84.1833780393964)" style={style} strokeLinecap="square" strokeLinejoin="bevel" d="M25.534 3.0189C0.850915 -13.6409 -16.2836 43.856 24.4455 48.8259C25.987 49.014 39.9204 48.0714 39.1403 47.0184" nodetypes="ccc"/>
+            <path id="shape2" transform="translate(82.5533858267711, 85.5790993215724)" style={style} strokeLinecap="square" strokeLinejoin="bevel" d="M0 25.8561C5.5679 15.8347 27.8626 -15.2249 40.0414 9.08665C52.7987 34.553 30.8928 52.1189 30.8928 75.4415C30.8928 75.8713 30.4053 78.2992 30.8409 77.3191" nodetypes="cccc"/>
+            <path id="shape3" transform="translate(123.625296657724, 77.7929432469583)" style={style} strokeLinecap="square" strokeLinejoin="bevel" d="M0.161655 16.7795C-1.30703 10.8318 7.60334 5.76751 11.8501 3.80007C64.9673 -20.808 29.1139 82.1352 28.5146 82.5397" nodetypes="ccc"/>
+            <path id="shape4" transform="translate(163.776512935882, 79.5844264480792)" style={style} strokeLinecap="square" strokeLinejoin="bevel" d="M0 9.18052C8.83574 1.22895 27.0425 -5.81293 36.5685 7.268C48.2484 23.3064 32.6979 47.1136 31.3852 64.0953C31.1259 67.4495 34.9425 78.9461 33.303 81.1913" nodetypes="cccc"/>
+            <path id="shape5" transform="translate(57.1653472233885, 164.927294541091)" style={style} strokeLinecap="square" strokeLinejoin="bevel" d="M14.9954 0C6.16934 3.97144 1.2282 10.3273 0.196947 20.4896C-4.34861 65.2827 71.6011 43.7825 41.0158 2.4956" nodetypes="ccc"/>
+            <path id="shape6" transform="translate(157.113841598665, 160.775740851828)" style={style} strokeLinecap="square" strokeLinejoin="bevel" d="M1.53939 2.06433C0.326444 0.972765 -0.0991571 14.0878 0.0189368 14.6745C2.46407 26.821 7.39862 35.477 20.9078 35.0124C36.9762 34.4598 47.0702 17.7554 41.3994 3.2305C40.5954 1.17115 38.5338 0.500593 39.9657 0" nodetypes="ccccc"/>
         </svg>
     )
 }

@@ -43,9 +43,15 @@ class GuardarImagen(PostApi):
         query = """INSERT INTO imagenes
                 (id_imagen, usuario_id, compra_id, ruta, filename, estatus)
                 values
-                (%s, %s, %s, %s, %s, 'pendiente') """
+                (:file_id, :usuario_id, :id_compra, :path_save, :file_name, 'pendiente') """
         
-        query_data = (file_id, usuario_id, id_compra, path_save, file_name)
+        query_data = {
+            "file_id": file_id,
+            "usuario_id": usuario_id,
+            "id_compra": id_compra,
+            "path_save": path_save,
+            "file_name": file_name,
+        }
         
         if not (self.conexion.ejecutar(query, query_data)):
             self.conexion.rollback()
@@ -62,10 +68,13 @@ class ValidarImagenesNoGuardadas(GetApi):
     def main(self):
         self.show_me()
         usuario_id = self.user["id_usuario"]
-        
+
         query = """SELECT id_imagen, ruta FROM imagenes
-                WHERE usuario_id = %s AND estatus = 'pendiente' """
-        query_data = (usuario_id,)
+                WHERE usuario_id = :usuario_id AND estatus = 'pendiente' """
+
+        query_data = {
+            "usuario_id": usuario_id,
+        }
         images = self.conexion.consulta_asociativa(query, query_data)
         
         # ids = [i["id_imagen"] for i in images]
@@ -84,8 +93,10 @@ class ValidarImagenesNoGuardadas(GetApi):
                 os.rmdir(f'{STATIC_DIR}/compras/{compra}')
             
         query = """DELETE FROM imagenes
-                WHERE usuario_id = %s AND estatus = 'pendiente' """
-        query_data = (usuario_id,)
+                WHERE usuario_id = :usuario_id AND estatus = 'pendiente' """
+        query_data = {
+            "usuario_id": usuario_id,
+        }
         
         if not (self.conexion.ejecutar(query, query_data)):
             self.conexion.rollback()
@@ -112,8 +123,10 @@ class GuardarCompra(PostApi):
         usuarios = [i["usuario"].lower() for i in self.data["items"]]
         usuarios = list(set(usuarios))
         query = """SELECT id_usuario, usuario FROM usuarios
-                WHERE lower(usuario) IN %s """
-        query_data = (tuple(usuarios),)
+                WHERE lower(usuario) IN :usuarios """
+        query_data = {
+            "usuarios": tuple(usuarios),
+        }
         usuarios = self.conexion.consulta_asociativa(query, query_data)
         self.usuarios_ids = {i["usuario"].lower(): i["id_usuario"] for i in usuarios}
         self.totales_usuario = {usuario: 0 for usuario in self.usuarios_ids.values()}
@@ -122,19 +135,19 @@ class GuardarCompra(PostApi):
         query = """INSERT INTO compras
                 (id_compra, total, origen, link, status_compra, pagado, nombre_compra, descripcion_compra, creado_por)
                 VALUES
-                (%s, %s, %s, %s, %s, %s, %s, %s, %s) """
+                (:id_compra, :total, :origen, :link, :status_compra, :pagado, :nombre_compra, :descripcion_compra, :creado_por) """
 
-        query_data = (
-            self.id_compra,
-            self.data["total"],
-            self.data["origen"],
-            self.data["link"],
-            "pendiente",
-            False,
-            self.data["nombre_compra"],
-            self.data["descripcion_compra"],
-            self.user["id_usuario"],
-        )
+        query_data = {
+            "id_compra": self.id_compra,
+            "total": self.data["total"],
+            "origen": self.data["origen"],
+            "link": self.data["link"],
+            "status_compra": "pendiente",
+            "pagado": False,
+            "nombre_compra": self.data["nombre_compra"],
+            "descripcion_compra": self.data["descripcion_compra"],
+            "creado_por": self.user["id_usuario"],
+        }
         if not(self.conexion.ejecutar(query, query_data)):
             self.conexion.rollback()
             raise Exception("Error al guardar la compra")
@@ -142,8 +155,10 @@ class GuardarCompra(PostApi):
         
         query = """UPDATE imagenes
                 SET estatus = 'guardada'
-                WHERE compra_id = %s """
-        query_data = (self.id_compra,)
+                WHERE compra_id = :id_compra """
+        query_data = {
+            "id_compra": self.id_compra,
+        }
         if not(self.conexion.ejecutar(query, query_data)):
             self.conexion.rollback()
             raise Exception("Error al actualizar las imágenes")
@@ -154,18 +169,18 @@ class GuardarCompra(PostApi):
         query = """INSERT INTO compras_det
                 (id_compra_det, compra_id, usuario_id, descripcion, precio, cantidad, total)
                 VALUES
-                (%s, %s, %s, %s, %s, %s, %s) """
+                (:id_compra_det, :compra_id, :usuario_id, :descripcion, :precio, :cantidad, :total) """
             
         query_2 = """INSERT INTO cargos
                 (id_cargo, usuario_id, compra_det_id, compra_id, total, fecha_limite, pagado, status_cargo, tipo)
                 VALUES
-                (%s, %s, %s, %s, %s, %s, false, 'pendiente', 'compra')
+                (:id_cargo, :usuario_id, :compra_det_id, :compra_id, :total, :fecha_limite, false, 'pendiente', 'compra')
         """
         
         query_3 = """INSERT INTO kardex
                 (id_kardex, usuario_id, cantidad, tipo, tipo_id, comentario, movimiento)
                 VALUES
-                (%s, %s, %s, 'compra', %s, 'compra inicial', 'S') """
+                (:id_kardex, :usuario_id, :cantidad, 'compra', :tipo_id, 'compra inicial', 'S') """
 
         for item in self.data["items"]:
             user = item["usuario"].lower()
@@ -173,15 +188,15 @@ class GuardarCompra(PostApi):
             total_precio = round(float(item["precio"]) * float(item["cantidad"]), 2)
             id_compra_det = str(uuid.uuid4())
 
-            query_data = (
-                id_compra_det,
-                self.id_compra,
-                usuario_id,
-                item["descripcion_compra"],
-                item["precio"],
-                item["cantidad"],
-                total_precio
-            )
+            query_data = {
+                "id_compra_det": id_compra_det,
+                "compra_id": self.id_compra,
+                "usuario_id": usuario_id,
+                "descripcion": item["descripcion_compra"],
+                "precio": item["precio"],
+                "cantidad": item["cantidad"],
+                "total": total_precio,
+            }
             if usuario_id not in self.totales_usuario:
                 self.totales_usuario[usuario_id] = 0
             self.totales_usuario[usuario_id] += round(float(item["precio"]) * float(item["cantidad"]), 2)
@@ -193,14 +208,14 @@ class GuardarCompra(PostApi):
             
             id_cargo = str(uuid.uuid4())
             # id_cargo, usuario_id, compra_det_id, total, fecha_limite
-            query_data = (
-                id_cargo,
-                usuario_id,
-                id_compra_det,
-                self.id_compra,
-                total_precio,
-                self.data["fecha_limite"],
-            )
+            query_data = {
+                "id_cargo": id_cargo,
+                "usuario_id": usuario_id,
+                "compra_det_id": id_compra_det,
+                "compra_id": self.id_compra,
+                "total": total_precio,
+                "fecha_limite": self.data["fecha_limite"],
+            }
             
             if not(self.conexion.ejecutar(query_2, query_data)):
                 self.conexion.rollback()
@@ -209,12 +224,12 @@ class GuardarCompra(PostApi):
             
             # id_kardex, usuario_id, cantidad, tipo_id
             id_kardex = str(uuid.uuid4())
-            query_data = (
-                id_kardex,
-                usuario_id,
-                total_precio,
-                id_cargo,
-            )
+            query_data = {
+                "id_kardex": id_kardex,
+                "usuario_id": usuario_id,
+                "cantidad": total_precio,
+                "tipo_id": id_cargo,
+            }
             
             if not(self.conexion.ejecutar(query_3, query_data)):
                 self.conexion.rollback()
@@ -225,49 +240,23 @@ class GuardarCompra(PostApi):
         query = """INSERT INTO compras_usuarios
                 (id_compra_usuario, usuario_id, compra_id, total_correspondiente, porcentaje)
                 VALUES
-                (%s, %s, %s, %s, %s) """
+                (:id_compra_usuario, :usuario_id, :compra_id, :total_correspondiente, :porcentaje) """
 
         for usuario_id, total in self.totales_usuario.items():
             id_compra_usuario = str(uuid.uuid4())
             porcentaje = round(total / self.data["total"] * 100, 2)
 
-            query_data = (
-                id_compra_usuario,
-                usuario_id,
-                self.id_compra,
-                total,
-                porcentaje
-            )
+            query_data = {
+                "id_compra_usuario": id_compra_usuario,
+                "usuario_id": usuario_id,
+                "compra_id": self.id_compra,
+                "total_correspondiente": total,
+                "porcentaje": porcentaje
+            }
             if not(self.conexion.ejecutar(query, query_data)):
                 self.conexion.rollback()
                 raise Exception("Error al guardar los usuarios de la compra")
             self.conexion.commit()
-
-    def test_data(self):
-        data = {
-            "id": "221c610c-ec81-4098-9f55-e2091b13f7d8",
-            "images": [
-                {
-                    "url": "http://localhost:8369/static/compras/221c610c-ec81-4098-9f55-e2091b13f7d8/preview/221c610c-ec81-4098-9f55-e2091b13f7d8_a8dc23f0-3940-40a0-b333-83846fd696ea.png",
-                    "name": "221c610c-ec81-4098-9f55-e2091b13f7d8_a8dc23f0-3940-40a0-b333-83846fd696ea.png",
-                    "id_image": "221c610c-ec81-4098-9f55-e2091b13f7d8_a8dc23f0-3940-40a0-b333-83846fd696ea",
-                    "index": 0
-                }
-            ],
-            "total": 123,
-            "nombre_compra": "Dive",
-            "descripcion_compra": "Dive desc",
-            "link": "http://localhost:5173/#/compras/nueva",
-            "origen": "Interno",
-            "items": [
-                {
-                    "usuario": "ojitos369",
-                    "descripcion_compra": "Version A",
-                    "cantidad": "1",
-                    "precio": "123"
-                }
-            ]
-        }
 
 
 class GetCompra(GetApi):
@@ -295,24 +284,24 @@ class GetCompra(GetApi):
         query = """SELECT c.*,
                 (select count(*) 
                 from compras_det 
-                where compra_id=c.id_compra) cantidad_articulos,
+                where compra_id = c.id_compra) cantidad_articulos,
                 (select sum(cantidad)
                 from compras_det 
-                where compra_id=c.id_compra) cantidad_items,
+                where compra_id = c.id_compra) cantidad_items,
                 (select sum(total)
                 from compras_det
-                where compra_id=c.id_compra) total_deuda,
+                where compra_id = c.id_compra) total_deuda,
                 (select sum(cantidad)
                 from abonos
-                where compra_id=c.id_compra
+                where compra_id = c.id_compra
                 and tipo='compra') total_abonado,
                 (select min(fecha_limite)
                 from cargos
-                where compra_id=c.id_compra
+                where compra_id = c.id_compra
                 and tipo='compra') fecha_limite
                 FROM compras c
-                WHERE c.id_compra = %(id_compra)s
-                AND (c.creado_por = %(id_usuario)s OR %(id_usuario)s IN (SELECT usuario_id FROM compras_usuarios WHERE compra_id = %(id_compra)s))
+                WHERE c.id_compra = :id_compra
+                AND (c.creado_por = :id_usuario OR :id_usuario IN (SELECT usuario_id FROM compras_usuarios WHERE compra_id = :id_compra))
                 """
         query_data = {
             "id_compra": self.id_compra,
@@ -326,8 +315,12 @@ class GetCompra(GetApi):
     
     def get_imagenes(self):
         query = """SELECT * FROM imagenes
-                WHERE compra_id = %s """
-        query_data = (self.id_compra,)
+                WHERE compra_id = :id_compra
+                order by fecha_alta asc
+                """
+        query_data = {
+            "id_compra": self.id_compra,
+        }
         self.imagenes = self.conexion.consulta_asociativa(query, query_data)
 
     def get_compras_det(self):
@@ -335,11 +328,11 @@ class GetCompra(GetApi):
                         u.usuario,
                         (select sum(cantidad)
                         from abonos
-                        where compra_det_id=cd.id_compra_det
+                        where compra_det_id = cd.id_compra_det
                         and tipo = 'compra'
                         and usuario_id = cd.usuario_id) total_abonado
                 FROM compras_det cd, usuarios u
-                WHERE compra_id = %(id_compra)s AND cd.usuario_id = u.id_usuario """
+                WHERE compra_id = :id_compra AND cd.usuario_id = u.id_usuario """
         query_data = {
             "id_compra": self.id_compra,
         }
@@ -349,7 +342,7 @@ class GetCompra(GetApi):
     def get_cargos(self):
         query = """SELECT c.*, (select usuario from usuarios where id_usuario = c.usuario_id) as usuario
                 FROM cargos c
-                WHERE compra_id = %(id_compra)s
+                WHERE compra_id = :id_compra
                 """
         query_data = {
             "id_compra": self.id_compra,
@@ -359,7 +352,7 @@ class GetCompra(GetApi):
     
     def get_abonos(self):
         query = """SELECT * FROM abonos
-                WHERE compra_id = %(id_compra)s """
+                WHERE compra_id = :id_compra """
         query_data = {
             "id_compra": self.id_compra,
         }
@@ -384,7 +377,7 @@ class GetMyCompras(GetApi):
     def get_detalles(self):
         query = """SELECT *
                 FROM compras_det
-                WHERE usuario_id = %(id_usuario)s """
+                WHERE usuario_id = :id_usuario """
         query_data = {
             "id_usuario": self.id_usuario,
         }
@@ -400,7 +393,9 @@ class GetMyCompras(GetApi):
             return
         query = """SELECT img.*
                 FROM imagenes img
-                WHERE img.compra_id in %(compras)s """
+                WHERE img.compra_id in :compras
+                order by img.fecha_alta asc
+                """
         query_data = {
             "compras": tuple(self.compras_ids),
         }
@@ -416,31 +411,31 @@ class GetMyCompras(GetApi):
             query = """select c.*, 
                         (select count(*) 
                         from compras_det 
-                        where compra_id=c.id_compra
-                        and usuario_id=%(id_usuario)s) as articulos,
+                        where compra_id = c.id_compra
+                        and usuario_id = :id_usuario) as articulos,
                         (select sum(cantidad)
                         from compras_det 
-                        where compra_id=c.id_compra
-                        and usuario_id=%(id_usuario)s) as cantidad_items,
+                        where compra_id = c.id_compra
+                        and usuario_id = :id_usuario) as cantidad_items,
                         (select sum(total)
                         from compras_det
-                        where compra_id=c.id_compra
-                        and usuario_id=%(id_usuario)s) as total_deuda,
+                        where compra_id = c.id_compra
+                        and usuario_id = :id_usuario) as total_deuda,
                         (select sum(cantidad)
                         from abonos
-                        where compra_id=c.id_compra
-                        and usuario_id=%(id_usuario)s) as total_abonado,
+                        where compra_id = c.id_compra
+                        and usuario_id = :id_usuario) as total_abonado,
                         (select min(fecha_limite)
                         from cargos
-                        where compra_id=c.id_compra
-                        and usuario_id=%(id_usuario)s) as fecha_limite
+                        where compra_id = c.id_compra
+                        and usuario_id = :id_usuario) as fecha_limite
                     from (SELECT *
                     FROM compras
-                    WHERE id_compra IN %(compras_ids)s
+                    WHERE id_compra IN :compras_ids
                     UNION
                     SELECT *
                     FROM compras
-                    WHERE creado_por = %(id_usuario)s) c
+                    WHERE creado_por = :id_usuario) c
                     
                     ORDER BY c.fecha_compra DESC
                 """
@@ -451,8 +446,10 @@ class GetMyCompras(GetApi):
         else:
             query = """SELECT *
                     FROM compras
-                    WHERE creado_por = %s """
-            query_data = (self.id_usuario,)
+                    WHERE creado_por = :id_usuario """
+            query_data = {
+                "id_usuario": self.id_usuario,
+            }
         
         self.compras = self.conexion.consulta_asociativa(query, query_data)
         

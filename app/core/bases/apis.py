@@ -12,10 +12,11 @@ from rest_framework.response import Response
 
 # Ojitos369
 from ojitos369.utils import get_d, print_line_center, printwln as pln
-from ojitos369_mysql_db.mysql_db import ConexionMySQL
 
 # User
 from app.settings import MYE, prod_mode, ce, DB_DATA
+from app.core.bases.conexion import MyConexioneMySQL as ConexionMySQL
+
 
 class BaseApi(APIView):
     def __init__(self):
@@ -80,13 +81,16 @@ class BaseApi(APIView):
         request = self.request
         cookies = request.COOKIES
         mi_cookie = get_d(cookies, 'tccm', default='')
-        now = timezone.now()
+        ahora = timezone.now()
         query = """SELECT *
                     FROM sesiones
-                    WHERE sesion = %s
-                    and caduca > %s
+                    WHERE sesion = :mi_cookie
+                    and caduca > :ahora
                 """
-        query_data = (mi_cookie, now)
+        query_data = {
+            "mi_cookie": mi_cookie,
+            "ahora": ahora,
+        }
         r = self.conexion.consulta_asociativa(query, query_data)
         if not r:
             self.status = 401
@@ -97,9 +101,11 @@ class BaseApi(APIView):
             raise self.MYE("Sesión no válida")
         query = """SELECT *
                     FROM usuarios
-                    WHERE id_usuario = %s
+                    WHERE id_usuario = :usuario_id
                 """
-        query_data = (r[0]['usuario_id'],)
+        query_data = {
+            "usuario_id": r[0]['usuario_id'],
+        }
         r = self.conexion.consulta_asociativa(query, query_data)
         if not r:
             self.status = 401

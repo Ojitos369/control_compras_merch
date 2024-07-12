@@ -28,8 +28,8 @@ class Login(NoSession, PostApi):
         
         query = """SELECT *
                     FROM usuarios
-                    WHERE lower(usuario) = %(usuario)s
-                    or lower(correo) = %(correo)s
+                    WHERE lower(usuario) = :usuario
+                    or lower(correo) = :correo
                 """
         query_data = {
             "usuario": user.lower(),
@@ -57,7 +57,7 @@ class Login(NoSession, PostApi):
         query = """INSERT INTO sesiones
                     (id_sesion, sesion, usuario_id, fecha_sesion, caduca, ip_origen)
                     VALUES
-                    (%(id_sesion)s, %(sesion)s, %(usuario_id)s, %(fecha_sesion)s, %(caduca)s, %(ip_origen)s)
+                    (:id_sesion, :sesion, :usuario_id, :fecha_sesion, :caduca, :ip_origen)
                 """
         query_data = {
             "id_sesion": str(uuid.uuid4()),
@@ -99,10 +99,13 @@ class Register(NoSession, PostApi):
 
         query = """SELECT *
                     FROM usuarios
-                    where lower(usuario) = %s
-                    or lower(correo) = %s
+                    where lower(usuario) = :usuario
+                    or lower(correo) = :correo
                     """
-        query_data = (usuario.lower(), correo.lower())
+        query_data = {
+            "usuario": usuario.lower(),
+            "correo": correo.lower(),
+        }
         r = self.conexion.consulta_asociativa(query, query_data)
         if r:
             raise self.MYE("Usuario ya registrado")
@@ -124,16 +127,16 @@ class Register(NoSession, PostApi):
             "fecha_nacimiento": fecha_nacimiento,
         }
         campos = "id_usuario, fecha_creado, fecha_editado, validado, activo, "
-        values = "%(id_usuario)s, now(), now(), %(validado)s, true, "
+        values = ":id_usuario, now(), now(), :validado, true, "
         query_data = {
             "id_usuario": id_usuario,
-            "validado": True,
+            "validado": False,
         }
 
         for campo, valor in user_data.items():
             if valor:
                 campos += f"{campo}, "
-                values += f"%({campo})s, "
+                values += f":{campo}, "
                 query_data[campo] = valor
 
         campos = campos[:-2]
@@ -166,9 +169,16 @@ class Register(NoSession, PostApi):
         query = """INSERT INTO codigos_confirmacion
                     (id_codigo, usuario_id, codigo, fecha_codigo, fecha_vencimiento, tipo_validacion)
                     VALUES
-                    (%s, %s, %s, %s, %s, %s)
+                    (:id_codigo, :usuario_id, :codigo, :fecha_codigo, :fecha_vencimiento, :tipo_validacion)
                 """
-        query_data = (id_codigo, usuario_id, codigo, fecha_codigo, fecha_vencimiento, tipo_validacion)
+        query_data = {
+            "id_codigo": id_codigo,
+            "usuario_id": usuario_id,
+            "codigo": codigo,
+            "fecha_codigo": fecha_codigo,
+            "fecha_vencimiento": fecha_vencimiento,
+            "tipo_validacion": tipo_validacion,
+        }
 
         if not self.conexion.ejecutar(query, query_data):
             self.conexion.rollback()
@@ -207,13 +217,16 @@ class ValidarCuenta(NoSession, PostApi):
         
         query = """SELECT *
                 from codigos_confirmacion
-                where (id_codigo = %s
-                or codigo = %s)
+                where (id_codigo = :id_codigo
+                or codigo = :codigo)
                 and tipo_validacion = 'registro'
                 and fecha_vencimiento > now()
                 and fecha_validado is null
                 """
-        query_data = (id_codigo, codigo)
+        query_data = {
+            "id_codigo": id_codigo,
+            "codigo": codigo,
+        }
         r = self.conexion.consulta_asociativa(query, query_data)
         if not r:
             raise self.MYE("Código de validación incorrecto o vencido")
@@ -225,9 +238,11 @@ class ValidarCuenta(NoSession, PostApi):
         query = """UPDATE usuarios
                 set validado = true,
                 activo = true
-                where id_usuario = %s
+                where id_usuario = :usuario_id
                 """
-        query_data = (codigo["usuario_id"],)
+        query_data = {
+            "usuario_id": codigo["usuario_id"],
+        }
         if not self.conexion.ejecutar(query, query_data):
             self.conexion.rollback()
             msg_error = "Error al validar y activar el usuario en la confirmacion\n"
@@ -239,9 +254,11 @@ class ValidarCuenta(NoSession, PostApi):
         
         query = """UPDATE codigos_confirmacion
                 set fecha_validado = now()
-                where id_codigo = %s
+                where id_codigo = :id_codigo
                 """
-        query_data = (codigo["id_codigo"],)
+        query_data = {
+            "id_codigo": codigo["id_codigo"],
+        }
         if not self.conexion.ejecutar(query, query_data):
             self.conexion.rollback()
             msg_error = "Error al validar la confirmacion\n"

@@ -17,7 +17,7 @@ const MenuModal = props => {
             {userLogged.token && 
             <div className={`w-10/12 px-4 py-3`}>
                 <Link
-                    className='w-full flex items-center justify-center py-2 px-4 rounded-md bg-purple-500 hover:bg-purple-600 text-black'
+                    className='w-full flex items-center justify-center py-2 px-4 rounded-md bg-[var(--ty)] hover:bg-[var(--sn)] text-black'
                     to='/compras/nueva/'
                     onClick={closeMemu}
                     >
@@ -26,7 +26,7 @@ const MenuModal = props => {
             </div>}
             <div className="w-10/12 md:w-5/12 px-4 py-3">
                 <button
-                    className='w-full flex items-center justify-center py-2 px-4 rounded-md bg-green-500 hover:bg-green-600 text-black'
+                    className='w-full flex items-center justify-center py-2 px-4 rounded-md bg-[var(--tw)] hover:bg-[var(--mm)] text-black'
                     onClick={lf.toggleTheme}
                     >
                     <p className="">Toggle Theme</p>
@@ -34,7 +34,7 @@ const MenuModal = props => {
             </div>
             <div className="w-10/12 md:w-5/12 px-4 py-3">
                 <a
-                    className='w-full flex items-center justify-center py-2 px-4 rounded-md bg-orange-500 hover:bg-orange-600 text-white'
+                    className='w-full flex items-center justify-center py-2 px-4 rounded-md bg-[var(--mn)] hover:bg-[var(--jy)] text-black'
                     href='https://me.ojitos369.com/#/contact/'
                     target='_blank'
                     rel='noreferrer'
@@ -45,7 +45,7 @@ const MenuModal = props => {
             {userLogged.token ?
             <div className="w-10/12 md:w-5/12 px-4 py-3">
                 <Link
-                    className='w-full flex items-center justify-center py-2 px-4 rounded-md bg-red-500 hover:bg-red-600 text-white'
+                    className='w-full flex items-center justify-center py-2 px-4 rounded-md bg-[var(--cy)] hover:bg-[var(--jh)] text-white hover:text-black'
                     to='/'
                     onClick={f.users.closeSession}
                     >
@@ -55,7 +55,7 @@ const MenuModal = props => {
             <>
                 <div className="w-10/12 md:w-5/12 px-4 py-3">
                     <Link
-                        className='w-full flex items-center justify-center py-2 px-4 rounded-md bg-blue-500 hover:bg-blue-600 text-white'
+                        className='w-full flex items-center justify-center py-2 px-4 rounded-md bg-[var(--ty)] hover:bg-[var(--ny)] text-white hover:text-black'
                         to='/users/login'
                         onClick={closeMemu}
                         >
@@ -64,7 +64,7 @@ const MenuModal = props => {
                 </div>
                 <div className="w-10/12 md:w-5/12 px-4 py-3">
                     <Link
-                        className='w-full flex items-center justify-center py-2 px-4 rounded-md bg-yellow-500 hover:bg-yellow-600 text-white'
+                        className='w-full flex items-center justify-center py-2 px-4 rounded-md bg-[var(--cy)] hover:bg-[var(--jh)] text-white hover:text-black'
                         to='/users/register'
                         onClick={closeMemu}
                         >

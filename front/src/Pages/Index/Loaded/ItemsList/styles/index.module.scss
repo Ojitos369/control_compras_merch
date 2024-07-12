@@ -11,6 +11,7 @@
         justify-content: space-around;
         .compra {
             .elementContainer {
+                margin-bottom: 20px;
                 .card {
                     width: 330px;
                     border-radius: 20px;
@@ -111,9 +112,11 @@
                             font-weight: 1000;
                             text-align: center;
                             letter-spacing: 1.5px;
-                            color: var(--dh);
-                            &:hover {
-                                color: var(--jh);
+                            a {
+                                color: var(--dh);
+                                &:hover {
+                                    color: var(--jh);
+                                }
                             }
                         }
                         .description {

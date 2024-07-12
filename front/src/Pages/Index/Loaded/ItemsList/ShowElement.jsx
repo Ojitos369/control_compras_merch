@@ -65,12 +65,13 @@ const ShowElement = props => {
                     </button>
                 </div>
                 <div className={`${styles.bottomSection}`}>
-                    <Link 
-                        className={`${styles.title}`}
-                        to={`/compras/detalle/${id_compra}`}
-                        >
-                        {nombre_compra}
-                    </Link>
+                    <p
+                        className={`${styles.title}`}>
+                        <Link to={`/compras/detalle/${id_compra}`}
+                            >
+                            {nombre_compra}
+                        </Link>
+                    </p>
                     <small
                         className={`${styles.description}`}
                         >

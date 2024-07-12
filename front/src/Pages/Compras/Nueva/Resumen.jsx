@@ -16,6 +16,8 @@ const Resumen = props => {
             <div>
                 <button 
                     className={`${styles.button} ${valid ? styles.guardar : styles.guardar_disabled}`}
+                    data-tooltip-id={`${valid && 'global'}`}
+                    data-tooltip-content={`${valid && 'Guardar Alt+Enter'}`}
                     onClick={save}
                     >
                     Guardar

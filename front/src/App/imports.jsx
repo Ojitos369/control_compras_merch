@@ -1,6 +1,7 @@
 // ------------------------------   REACT   ------------------------------ //
 import { useMemo, useEffect } from 'react';
 import { Route, Routes } from 'react-router-dom';
+import { Tooltip } from 'react-tooltip'
 
 // ------------------------------   PAGES   ------------------------------ //
 // base
@@ -38,6 +39,7 @@ import { cambiarThema } from '../Core/helper';
 export {
     useMemo, useEffect, 
     Route, Routes, 
+    Tooltip, 
     Base, 
     Index, 
     Test, 

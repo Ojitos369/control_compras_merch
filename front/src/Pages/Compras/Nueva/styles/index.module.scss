@@ -33,26 +33,28 @@
             }
         }
         .images_change {
-            background-color: #080;
+            background-color: var(--mn);
             text-align: center;
             padding: 5px;
             margin-top: 8px;
             border-radius: 8px;
+            color: black;
             cursor: pointer;
             &:hover {
-                background-color: #0a0;
+                background-color: var(--jy);
             }
         }
     }
     .items {
         .addButton {
-            background: #10861a;
+            background: var(--mn);
             padding: 3px 14px;
             border-radius: 8px;
             width: 120px;
             margin-left: 50px;
+            color: black;
             &:hover {
-                background: #0a6c13;
+                background: var(--jy);
             }
         }
         .item_container {
@@ -114,14 +116,16 @@
             padding: 4px 10px;
             border-radius: 8px;
             &.guardar {
-                background: #10861a;
+                background: var(--mn);
                 cursor: pointer;
+                color: #000;
                 &:hover {
-                    background: #0a6c13;
+                    background: var(--jy);
                 }
             }
             &.guardar_disabled {
                 border: 1px solid #888;
+                cursor: not-allowed;
             }
         }
     }

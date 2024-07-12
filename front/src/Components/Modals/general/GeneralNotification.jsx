@@ -3,10 +3,10 @@ import { useStates } from '../../../Hooks/useStates';
 import { GeneralModal } from '../GeneralModal';
 
 const colors = {
-    success: 'var(--my-success)',
-    danger: 'var(--my-danger)',
-    warning: 'var(--my-warning)',
-    info: 'var(--my-info)',
+    success: 'var(--mn)',
+    danger: 'var(--cy)',
+    warning: 'var(--jh)',
+    info: 'var(--ty)',
 }
 
 const Content = props => {

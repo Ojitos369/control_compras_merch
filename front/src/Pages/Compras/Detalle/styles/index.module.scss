@@ -8,6 +8,27 @@
     width: 100vw;
     padding: 15px;
     margin-bottom: 35px;
+    .accionesContainer {
+        width: 100%;
+        margin-bottom: 15px;
+        display: flex;
+        justify-content: start;
+        .actionDiv {
+            padding: 5px 10px;
+            .actionButton {
+                background-color: var(--ty);
+                color: white;
+                padding: 7px 15px;
+                font-size: 1.1rem;
+                border-radius: 10px;
+                cursor: pointer;
+                &:hover {
+                    background-color: var(--jy);
+                    color: #000;
+                }
+            }
+        }
+    }
     .imagesContainer {
         display: flex;
         justify-content: center;
@@ -45,14 +66,16 @@
                 .imageButton {
                     width: 45px;
                     height: 45px;
-                    background-color: #1b233d;
+                    background-color: var(--cy);
+                    color: #fff;
                     display: flex;
                     justify-content: center;
                     align-items: center;
                     cursor: pointer;
                     border-radius: 50%;
                     &:hover {
-                        background-color: #165;
+                        background-color: var(--mm);
+                        color: #000;
                     }
                 }
             }
@@ -67,6 +90,7 @@
             width: 100%;
             text-align: center;
             font-size: 1.5em;
+            color: var(--sn);
             font-weight: bold;
         }
         .fechaCompra {
@@ -131,6 +155,13 @@
             .origen {
                 font-weight: bold;
             }
+            a {
+                color: var(--ny);
+                font-weight: bold;
+                &:hover {
+                    color: var(--jh);
+                }
+            }
         }
     }
     .detailViewContainer {
@@ -147,9 +178,16 @@
             text-align: center;
             border: 1px solid #888;
             cursor: pointer;
+            &:hover {
+                background-color: var(--mn);
+                color: #000;
+            }
             &.detailViewButtonActive {
-                background-color: var(--my-primary);
+                background-color: var(--ty);
                 color: white;
+                &:hover {
+                    cursor: not-allowed;
+                }
             }
         }
     }
@@ -183,9 +221,16 @@
                 text-align: center;
                 border: 1px solid #888;
                 cursor: pointer;
+                &:hover {
+                    background-color: var(--mn);
+                    color: #000;
+                }
                 &.cargoViewButtonActive {
-                    background-color: var(--my-primary);
+                    background-color: var(--ty);
                     color: white;
+                    &:hover {
+                        cursor: not-allowed;
+                    }
                 }
             }
         }
@@ -210,9 +255,16 @@
                 text-align: center;
                 border: 1px solid #888;
                 cursor: pointer;
+                &:hover {
+                    background-color: var(--mn);
+                    color: #000;
+                }
                 &.abonoViewButtonActive {
-                    background-color: var(--my-primary);
+                    background-color: var(--ty);
                     color: white;
+                    &:hover {
+                        cursor: not-allowed;
+                    }
                 }
             }
         }

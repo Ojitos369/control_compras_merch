@@ -1,5 +1,6 @@
 import { useVars, useMyEffects } from "./myUse";
 import { TwiceLogo } from "../../../Components/Loaders/TwiceLogo";
+import { Acciones } from "./Acciones";
 import { Images } from "./Images";
 import { Generales } from "./Generales";
 import { DetalView } from "./DetalView";
@@ -21,6 +22,7 @@ const Detalle = props => {
     }
     return (
         <section className={`${styles.compraDetailContainer}`}>
+            <Acciones />
             <Images />
             <Generales />
             <DetalView />

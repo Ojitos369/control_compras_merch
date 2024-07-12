@@ -1,6 +1,7 @@
 import {
     useMemo, useEffect,  
     Route, Routes, 
+    Tooltip, 
     Base, 
     Index, 
     Test, 
@@ -10,7 +11,6 @@ import {
     GeneralNotification, 
     cambiarThema, 
 } from './imports';
-
 
 const BgTheme = () => {
     const { ls } = useStates();
@@ -59,6 +59,7 @@ function AppUI() {
 
     return (
         <div className={`text-[var(--my-minor)]`}>
+            <Tooltip id="global" />
             <BgTheme />
             {userLogged.token ? <Logged /> : <NotLogged />}
             {!!s.modals?.general?.notification &&

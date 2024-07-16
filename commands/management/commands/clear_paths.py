@@ -17,3 +17,4 @@ class Command(MyBaseCommand):
             if folder not in ids:
                 print(f"Deleting: {folder}")
                 os.system(f"rm -rf {STATIC_DIR}/{check_path}/{folder}")
+

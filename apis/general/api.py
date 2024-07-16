@@ -21,4 +21,3 @@ class GetHostLink(GetApi):
     def validate_session(self):
         pass
 
-        

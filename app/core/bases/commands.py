@@ -13,7 +13,8 @@ from ojitos369.utils import get_d, print_line_center, printwln as pln, print_jso
 from ojitos369.text_format import TextFormat as TF
 
 # User
-from app.settings import MYE, prod_mode, ce
+from app.settings import MYE, prod_mode, ce, DB_DATA
+from app.core.bases.conexion import MyConexioneMySQL as ConexionMySQL
 
 class MyBaseCommand(BaseCommand):
     def __init__(self):
@@ -32,9 +33,19 @@ class MyBaseCommand(BaseCommand):
             error = self.ce.show_error(e, send_email=prod_mode)
             print_line_center(error)
 
+    def create_conexion(self):
+        self.close_conexion()
+        self.conexion = ConexionMySQL(DB_DATA, ce=self.ce, send_error=True)
+    
+    def close_conexion(self):
+        try:
+            self.conexion.close()
+        except:
+            pass
 
     def handle(self, *args, **options):
         try:
             self.main(*args, **options)
         except Exception as e:
             self.errors(e)
+

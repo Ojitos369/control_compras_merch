@@ -32,7 +32,7 @@ const Abonos = props => {
                     Compra
                 </button>
             </div>
-            
+
             <div className={`${styles.tableContainer}`}>
                 <div className={`${styles.tableDiv}`}>
                     <table className={`${styles.table} table table-auto`}>

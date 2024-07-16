@@ -3,6 +3,7 @@ import os
 import json
 import uuid
 
+from ojitos369.utils import print_json as pj
 # User
 from app.core.bases.apis import PostApi, GetApi, get_d, pln
 
@@ -177,7 +178,7 @@ class GuardarCompra(PostApi):
         query_3 = """INSERT INTO kardex
                 (id_kardex, usuario_id, cantidad, tipo, tipo_id, comentario, movimiento)
                 VALUES
-                (:id_kardex, :usuario_id, :cantidad, 'compra', :tipo_id, 'compra inicial', 'S') """
+                (:id_kardex, :usuario_id, :cantidad, 'compra', :tipo_id, 'Compra inicial', 'S') """
             
         query_4 = """INSERT INTO compras_usuarios
                 (id_compra_usuario, usuario_id, compra_id, compra_det_id, total_correspondiente, porcentaje)
@@ -276,6 +277,7 @@ class GetCompra(GetApi):
                 "usuarios": self.usuarios,
             }
         }
+        # pj(self.response)
 
     def get_compra(self):
         query = """SELECT c.*,
@@ -321,15 +323,17 @@ class GetCompra(GetApi):
         self.imagenes = self.conexion.consulta_asociativa(query, query_data)
 
     def get_compras_det(self):
-        query = """SELECT cd.*, 
+        query = """SELECt t.*, (t.total - t.total_abonado) restante
+                FROM (SELECT cd.*, 
                         u.usuario,
-                        (select sum(cantidad)
+                        (select nvl(sum(cantidad), 0)
                         from abonos
                         where compra_det_id = cd.id_compra_det
                         and tipo = 'compra'
                         and usuario_id = cd.usuario_id) total_abonado
                 FROM compras_det cd, usuarios u
-                WHERE compra_id = :id_compra AND cd.usuario_id = u.id_usuario """
+                WHERE compra_id = :id_compra AND cd.usuario_id = u.id_usuario) t
+                """
         query_data = {
             "id_compra": self.id_compra,
         }
@@ -348,7 +352,8 @@ class GetCompra(GetApi):
         self.cargos_ids = [i["id_cargo"] for i in self.cargos]
 
     def get_abonos(self):
-        query = """SELECT * FROM abonos
+        query = """SELECT a.* , (select usuario from usuarios where id_usuario = a.usuario_id) as usuario
+                FROM abonos a
                 WHERE compra_id = :id_compra """
         query_data = {
             "id_compra": self.id_compra,
@@ -487,8 +492,8 @@ class GuardarCargo(PostApi):
             raise self.MYE("No tienes permiso para realizar esta acción")
 
     def add_cargo(self):
-        total = self.data["total"]
-        fecha_limite = self.data["fecha_limite"]
+        total = self.data.get("total", 0)
+        fecha_limite = self.data.get("fecha_limite", None)
         tipo = self.data["tipo"]
         compra_id = self.data["compra_id"]
         perUser = get_d(self.data, "perUser", default={})
@@ -506,7 +511,7 @@ class GuardarCargo(PostApi):
         for user in self.data["usuarios"]:
             id_cargo = str(uuid.uuid4())
             compra_det_id = user["compra_det_id"]
-            if compra_det_id in perUser and not perUser[compra_det_id]:
+            if (compra_det_id in perUser and not perUser[compra_det_id]) or (compra_det_id not in perUser and not total):
                 continue
             query_data["id_cargo"] = id_cargo
             query_data["usuario_id"] = user["id_usuario"]
@@ -528,7 +533,7 @@ class GuardarCargo(PostApi):
     def add_kardex(self, usuario_id, cantidad, tipo_id, tipo_cargo):
         id_kardex = str(uuid.uuid4())
         tipo = "cargo"
-        comentario = f"cargo por {tipo_cargo}"
+        comentario = f"Cargo por {tipo_cargo}"
 
         ''' 
         query = """ INSERT INTO kardex
@@ -593,6 +598,135 @@ class GuardarCargo(PostApi):
             "tipo": "ems",
             "fecha_limite": "2024-07-31"
         }
+
+
+class GuardarAbono(PostApi):
+    def main(self):
+        self.show_me()
+        self.compra_id = self.data["compra_id"]
+        self.validarCreador()
+        self.add_abono()
+    
+    def validarCreador(self):
+        query = """SELECT creado_por
+                FROM compras
+                WHERE id_compra = :compra_id """
+        query_data = {
+            "compra_id": self.compra_id,
+        }
+        compra = self.conexion.consulta_asociativa(query, query_data)
+        if not compra:
+            raise self.MYE("No se encontró la compra")
+        if (compra[0]["creado_por"] != self.user["id_usuario"]):
+            raise self.MYE("No tienes permiso para realizar esta acción")
+
+    def add_abono(self):
+        total = self.data.get("total", 0)
+        tipo = self.data["tipo"]
+        perUser = get_d(self.data, "perUser", default={})
+        query = """INSERT INTO abonos
+                (id_abono, cantidad, tipo, compra_det_id, compra_id, usuario_id)
+                VALUES
+                (:id_abono, :cantidad, :tipo, :compra_det_id, :compra_id, :usuario_id)
+            """
+            
+        query_data = {
+            "compra_id": self.compra_id,
+            "tipo": tipo,
+        }
+
+        for user in self.data["usuarios"]:
+            id_abono = str(uuid.uuid4())
+            compra_det_id = user["compra_det_id"]
+            if (compra_det_id in perUser and not perUser[compra_det_id]) or (compra_det_id not in perUser and not total):
+                continue
+            query_data["id_abono"] = id_abono
+            query_data["usuario_id"] = user["id_usuario"]
+            query_data["compra_det_id"] = compra_det_id
+            
+            if compra_det_id in perUser:
+                query_data["cantidad"] = float(perUser[compra_det_id])
+            else:
+                porcentaje = user["porcentaje"]
+                query_data["cantidad"] = round(float(total) * porcentaje / 100, 2)
+
+            if not(self.conexion.ejecutar(query, query_data)):
+                self.conexion.rollback()
+                raise Exception("Error al guardar el abono")
+            self.conexion.commit()
+            
+            self.add_kardex(user["id_usuario"], query_data["cantidad"], id_abono, tipo)
+        
+    def add_kardex(self, usuario_id, cantidad, tipo_id, tipo_abono):
+        id_kardex = str(uuid.uuid4())
+        tipo = "abono"
+        comentario = f"Abono por {tipo_abono}"
+
+        ''' 
+        query = """ INSERT INTO kardex
+                (id_kardex, usuario_id, cantidad, tipo, tipo_id, comentario, movimiento)
+                VALUES
+                (:id_kardex, :usuario_id, :cantidad, :tipo, :tipo_id, :comentario, 'S')
+            """
+        query_data = {
+            "id_kardex": str(id_kardex),
+            "usuario_id": str(usuario_id),
+            "cantidad": float(cantidad),
+            "tipo": str(tipo),
+            "tipo_id": str(tipo_id),
+            "comentario": str(comentario),
+        } 
+        '''
+        query = """ INSERT INTO kardex
+                (id_kardex, usuario_id, cantidad, tipo, tipo_id, comentario, movimiento)
+                VALUES
+                (%s, %s, %s, %s, %s, %s, 'S')
+            """
+        query_data = (
+            str(id_kardex),
+            str(usuario_id),
+            float(cantidad),
+            str(tipo),
+            str(tipo_id),
+            str(comentario),
+        )
+        if not(self.conexion.ejecutar(query, query_data)):
+            self.conexion.rollback()
+            raise Exception("Error al guardar el kardex")
+        self.conexion.commit()
+
+    def example_data(self):
+        data = {
+            "compra_id": "1b745759-3db4-4c3b-9a8c-bbd9812b8e01",
+            "usuarios": [
+                {
+                    "usuario": "test",
+                    "porcentaje": 4.86,
+                    "id_usuario": "cf25556b-dda2-4117-8126-f160ac7ac1ad",
+                    "descripcion": "art1"
+                },
+                {
+                    "usuario": "test2",
+                    "porcentaje": 8.77,
+                    "id_usuario": "72aeeed5-e301-4843-b579-4db9ea3a44b7",
+                    "descripcion": "art2"
+                },
+                {
+                    "usuario": "ojitos369",
+                    "porcentaje": 86.37,
+                    "id_usuario": "e66a184d-8d5e-4a70-917c-45767bbaacfb",
+                    "descripcion": "art3"
+                }
+            ],
+            "total": "149.83",
+            "perUser": {
+                "e66a184d-8d5e-4a70-917c-45767bbaacfb": "101.7"
+            },
+            "tipo": "ems",
+            "fecha_limite": "2024-07-31"
+        }
+
+
 
 """ 
 

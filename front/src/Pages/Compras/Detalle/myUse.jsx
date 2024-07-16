@@ -1,6 +1,7 @@
 import { useEffect, useMemo } from "react";
 import { useStates } from "../../../Hooks/useStates";
 import { useParams } from "react-router-dom";
+import { sortList } from "../../../Core/helper";
 import styles from './styles/index.module.scss'
 
 const useVars = props => {
@@ -18,7 +19,10 @@ const useVars = props => {
     const showAgregarCargo = useMemo(() => s.modals?.compras?.agregarCargo, [s.modals?.compras?.agregarCargo]);
     const showAgregarAbono = useMemo(() => s.modals?.compras?.agregarAbono, [s.modals?.compras?.agregarAbono]);
     const newCargo = useMemo(() => s.compras?.newCargo?.data || {}, [s.compras?.newCargo?.data]);
+    const newAbono = useMemo(() => s.compras?.newAbono?.data || {}, [s.compras?.newAbono?.data]);
     const creadorCompra = useMemo(() => compra.creado_por === s.login?.data?.user?.id_usuario, [compra.creado_por, s.login?.data?.user?.id_usuario]);
+    const guardandoCargo = useMemo(() => s.loadings?.compras?.guardarCargo, [s.loadings?.compras?.guardarCargo]);
+    const guardandoAbono = useMemo(() => s.loadings?.compras?.guardarAbono, [s.loadings?.compras?.guardarAbono]);
 
     const keyExec = useMemo(() => {
         const comprasKeys = Object.keys(s.modals?.compras || {});
@@ -36,6 +40,17 @@ const useVars = props => {
         return { cargosExtra, cargosCompra, cargosExtraTotal, cargosTotal };
     }, [cargosGenerales]);
 
+    const totalNewCargoFinal = useMemo(() => {
+        const perUser = newCargo.perUser ?? {};
+        const total = newCargo.total ?? 0;
+        let totalFinal = 0;
+        usuarios.map(usuario => {
+            const cantidad = (total || perUser[usuario.compra_det_id]) ? (perUser[usuario.compra_det_id] ?? Number(usuario.porcentaje * total / 100).toFixed(2)) : 0;
+            totalFinal += Number(cantidad);
+        });
+        return totalFinal;
+    }, [newCargo.total, newCargo.perUser, usuarios]);
+
     const [cargoListView, cargoTotalView] = useMemo(() => {
         switch (cargoView) {
             case 'extra':
@@ -45,15 +60,26 @@ const useVars = props => {
             default:
                 return [cargosGenerales, cargosTotal];
         }
-    }, [cargoView]);
+    }, [cargoView, cargosGenerales]);
 
     const { abonosExtra, abonosCompra, abonosExtraTotal, abonosTotal } = useMemo(() => {
         const abonosExtra = abonosGenerales.filter(e => e.tipo !== 'extra');
         const abonosCompra = abonosGenerales.filter(e => e.tipo === 'compra');
-        const abonosExtraTotal = abonosExtra.reduce((acc, e) => acc + e.total, 0);
-        const abonosTotal = abonosGenerales.reduce((acc, e) => acc + e.total, 0);
+        const abonosExtraTotal = abonosExtra.reduce((acc, e) => acc + e.cantidad, 0);
+        const abonosTotal = abonosGenerales.reduce((acc, e) => acc + e.cantidad, 0);
         return { abonosExtra, abonosCompra, abonosExtraTotal, abonosTotal };
     }, [abonosGenerales]);
+
+    const totalNewAbonoFinal = useMemo(() => {
+        const perUser = newAbono.perUser ?? {};
+        const total = newAbono.total ?? 0;
+        let totalFinal = 0;
+        usuarios.map(usuario => {
+            const cantidad = (total || perUser[usuario.compra_det_id]) ? (perUser[usuario.compra_det_id] ?? Number(usuario.porcentaje * total / 100).toFixed(2)) : 0;
+            totalFinal += Number(cantidad);
+        });
+        return totalFinal;
+    }, [newAbono.total, newAbono.perUser, usuarios]);
 
     const [abonoListView, abonoTotalView] = useMemo(() => {
         switch (abonoView) {
@@ -64,7 +90,7 @@ const useVars = props => {
             default:
                 return [abonosGenerales, abonosTotal];
         }
-    }, [abonoView]);
+    }, [abonoView, abonosGenerales]);
 
     const { actualImage, indexImage, lenImages } = useMemo(() => {
         const actualImage = s.compras?.consulta?.imageSelected || {};
@@ -110,7 +136,7 @@ const useVars = props => {
     const agregarAbono = e => {
         if (!!e) e.preventDefault();
         if (!creadorCompra) return;
-        console.log('agregarAbono');
+        f.u2('modals', 'compras', 'agregarAbono', true);
     }
 
     const validaMK = e => {
@@ -153,6 +179,34 @@ const useVars = props => {
     }
 
 
+    const ordenar = (modo, l, mode) => {
+        let order = 'desc';
+        if (modo === s.tables?.orden?.mode) {
+            order = s.tables?.orden?.order === 'desc' ? 'asc' : 'desc';
+        } else {
+            order = 'desc';
+        }
+        l = sortList(l, modo, order);
+
+        switch (mode) {
+            case 'articulos':
+                f.u3('compras', 'consulta', 'compraData', 'articulos', l);
+                break;
+            case 'cargos':
+                f.u3('compras', 'consulta', 'compraData', 'cargos', l);
+                break;
+            case 'abonos':
+                f.u3('compras', 'consulta', 'compraData', 'abonos', l);
+                break;
+            default:
+                break
+        }
+
+        f.u2('tables', 'orden', 'mode', modo);
+        f.u2('tables', 'orden', 'order', order);
+    }
+
+
     return {
         styles, imgLink, 
         cargandoCompra, 
@@ -169,8 +223,12 @@ const useVars = props => {
         usuarios, 
         agregarCargo, agregarAbono, 
         showAgregarCargo, showAgregarAbono, 
-        newCargo, updateNewCargo, upgradePerUserCargo, guardarCargo, 
+        newCargo, updateNewCargo, upgradePerUserCargo, 
+        guardarCargo, totalNewCargoFinal, guardandoCargo, 
+        newAbono, updateNewAbono, upgradePerUserAbono, 
+        guardarAbono, totalNewAbonoFinal, guardandoAbono, 
         validaMK, keyExec, closeModals, 
+        ordenar, validarOrdenTable: f.general.tables.validarOrden, 
     }
 }
 

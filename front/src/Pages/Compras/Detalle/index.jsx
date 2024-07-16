@@ -9,6 +9,7 @@ import { Articulos } from "./Articulos";
 import { Cargos } from "./Cargos";
 import { Abonos } from "./Abonos";
 import { AgregarCargoModal } from "./Modals/AgregarCargoModal";
+import { AgregarAbonoModal } from "./Modals/AgregarAbonoModal";
 
 const Detalle = props => {
     const { styles, cargandoCompra, detailView, keyExec, showAgregarCargo, showAgregarAbono } = useVars();
@@ -33,6 +34,7 @@ const Detalle = props => {
             {detailView === 'cargos' && <Cargos />}
             {detailView === 'abonos' && <Abonos />}
             {showAgregarCargo && <AgregarCargoModal />}
+            {showAgregarAbono && <AgregarAbonoModal />}
         </section>
     )
 }

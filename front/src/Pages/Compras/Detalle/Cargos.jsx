@@ -4,7 +4,12 @@ import { showCurrency, showDate } from "../../../Core/helper";
 const Cargos = props => {
     const { 
         styles, cargoView, changeCargoView, 
-        cargoListView, cargoTotalView,   } = useVars();
+        cargoListView, ordenar, validarOrdenTable } = useVars();
+    
+    const order = mode => {
+        // ordenar, validarOrdenTable
+        ordenar(mode, [...cargoListView], 'cargos');
+    }
 
     return (
         <div className={`${styles.cargosContainer}`}>
@@ -34,20 +39,45 @@ const Cargos = props => {
                     <table className={`${styles.table} table table-auto`}>
                         <thead>
                             <tr>
-                                <th>
-                                    Usuario
+                                <th className='text-start table-header' scope="col">
+                                    <button className='w-full m-0 bg-[#788] px-3 py-1 rounded-lg whitespace-nowrap'
+                                        onClick={() => {
+                                            order('usuario');
+                                        }}>
+                                        Usuario {validarOrdenTable('usuario')}
+                                    </button>
                                 </th>
-                                <th>
-                                    Tipo
+                                <th className='text-start table-header' scope="col">
+                                    <button className='w-full m-0 bg-[#788] px-3 py-1 rounded-lg whitespace-nowrap'
+                                        onClick={() => {
+                                            order('tipo');
+                                        }}>
+                                        Tipo {validarOrdenTable('tipo')}
+                                    </button>
                                 </th>
-                                <th>
-                                    Fecha
+                                <th className='text-start table-header' scope="col">
+                                    <button className='w-full m-0 bg-[#788] px-3 py-1 rounded-lg whitespace-nowrap'
+                                        onClick={() => {
+                                            order('fecha_cargo');
+                                        }}>
+                                        Fecha {validarOrdenTable('fecha_cargo')}
+                                    </button>
                                 </th>
-                                <th>
-                                    Fecha Limite
+                                <th className='text-start table-header' scope="col">
+                                    <button className='w-full m-0 bg-[#788] px-3 py-1 rounded-lg whitespace-nowrap'
+                                        onClick={() => {
+                                            order('fecha_limite');
+                                        }}>
+                                        Fecha Limite {validarOrdenTable('fecha_limite')}
+                                    </button>
                                 </th>
-                                <th>
-                                    Total
+                                <th className='text-start table-header' scope="col">
+                                    <button className='w-full m-0 bg-[#788] px-3 py-1 rounded-lg whitespace-nowrap'
+                                        onClick={() => {
+                                            order('total');
+                                        }}>
+                                        Total {validarOrdenTable('total')}
+                                    </button>
                                 </th>
                             </tr>
                         </thead>

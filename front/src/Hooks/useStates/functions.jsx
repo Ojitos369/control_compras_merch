@@ -183,6 +183,11 @@ const useF = props => {
                 u1('general', 'imagesLink', `${host}/static/compras`);
             });
         },
+        tables: {
+            validarOrden: modo => {
+                return s.tables?.orden?.mode == modo ? (s.tables?.orden?.order == 'asc' ? '⬆️' : '⏬') : '➾'
+            }
+        },
     }
 
     const compras = {
@@ -317,8 +322,39 @@ const useF = props => {
             }).finally(() => {
                 u2('loadings', 'compras', 'guardarCargo', false);
             });
+        },
+        guardarAbono: (compra_id, usuarios) => {
+            if (s.loadings?.compras?.guardarAbono) return;
+            u2('loadings', 'compras', 'guardarAbono', true);
 
-        }
+            const end = 'compras/guardar_abono/';
+            const data = {
+                compra_id, usuarios,
+                ...s.compras?.newAbono?.data || {}
+            }
+
+            miAxios.post(end, data)
+            .then(response => {
+                const message = response.data.message;
+                general.notificacion({
+                    mode: 'success',
+                    title: 'Guardado con exito',
+                    message: message || "Guardado con exito"
+                });
+                u2('modals', 'compras', 'agregarAbono', false);
+                u2('compras', 'newAbono', 'data', null);
+                compras.getCompra(compra_id);
+            }).catch(error => {
+                const message = error.response.data.message;
+                general.notificacion({
+                    mode: 'danger',
+                    title: 'Error al guardar',
+                    message: message || "Error al guardar"
+                });
+            }).finally(() => {
+                u2('loadings', 'compras', 'guardarAbono', false);
+            });
+        },
     }
 
     const dd = {

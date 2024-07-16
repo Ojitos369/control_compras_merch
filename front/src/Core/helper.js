@@ -200,6 +200,29 @@ const selectNull = props => {
     props.actualizador(data);
 }
 
+const sortList = (lista, mode, order) => {
+    const newLista = lista.sort((a, b) => {
+        if (order == 'asc') {
+            if (a[mode] > b[mode]) {
+                return -1;
+            }
+            if (a[mode] < b[mode]) {
+                return 1;
+            }
+            return 0;
+        }
+        else {
+            if (a[mode] < b[mode]) {
+                return -1;
+            }
+            if (a[mode] > b[mode]) {
+                return 1;
+            }
+            return 0;
+        }
+    })
+    return newLista;
+}
 
 export {
     cambiarThema,
@@ -212,4 +235,5 @@ export {
     selectArrowDown,
     selectEnter,
     selectNull,
+    sortList, 
 };

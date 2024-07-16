@@ -7,20 +7,20 @@ import { TwiceLogo } from "../../../../Components/Loaders/TwiceLogo";
 
 const Component = props => {
     const { f } = useStates();
-    const { styles, usuarios, newCargo, upgradePerUserCargo, updateNewCargo, guardarCargo, closeModals, totalNewCargoFinal } = useVars();
-    const { total=0, fecha_limite='', tipo='', perUser={} } = newCargo;
+    const { styles, usuarios, newAbono, upgradePerUserAbono, updateNewAbono, guardarAbono, closeModals, totalNewAbonoFinal } = useVars();
+    const { total=0, tipo='', perUser={} } = newAbono;
 
     useEffect(() => {
-        f.u2('compras', 'newCargo', 'data', null);
+        f.u2('compras', 'newAbono', 'data', null);
     }, []);
     return (
-        <div className={`${styles.agregarCargoModal}`}>
+        <div className={`${styles.agregarAbonoModal}`}>
             <h3 className={`${styles.acTitle}`}>
-                Agregar Cargo
+                Agregar Abono
             </h3>
             <form
                 className={`${styles.acForm}`}
-                onSubmit={guardarCargo}
+                onSubmit={guardarAbono}
             >
                 <div className={`${styles.acFormRow}`}>
                     <div className={`${styles.acInputElement}`}>
@@ -31,34 +31,21 @@ const Component = props => {
                             className={`${styles.acInput}`}
                             type="number"
                             value={total}
-                            onChange={e => updateNewCargo('total', e.target.value)}
+                            onChange={e => updateNewAbono('total', e.target.value)}
                         />
                     </div>
                 </div>
                 <div className={`${styles.acFormRow}`}>
                     <div className={`${styles.acInputElement}`}>
                         <label className={`${styles.acLabel}`}>
-                            Fecha Limite
-                        </label>
-                        <input 
-                            className={`${styles.acInput}`}
-                            type="date"
-                            value={fecha_limite}
-                            onChange={e => updateNewCargo('fecha_limite', e.target.value)}
-                        />
-                    </div>
-                </div>
-                <div className={`${styles.acFormRow}`}>
-                    <div className={`${styles.acInputElement}`}>
-                        <label className={`${styles.acLabel}`}>
-                            Tipo de Cargo
+                            Tipo de Abono
                         </label>
                         <input 
                             className={`${styles.acInput}`}
                             type="text"
                             value={tipo}
                             placeholder="EMS, Envio, etc."
-                            onChange={e => updateNewCargo('tipo', e.target.value)}
+                            onChange={e => updateNewAbono('tipo', e.target.value)}
                         />
                     </div>
                 </div>
@@ -77,15 +64,14 @@ const Component = props => {
                                     className={`${styles.acInput}`}
                                     type="number"
                                     value={cantidad}
-                                    onChange={e => upgradePerUserCargo(usuario.compra_det_id, e.target.value)}
+                                    onChange={e => upgradePerUserAbono(usuario.compra_det_id, e.target.value)}
                                 />
                             </div>
                         </div>
                     )
                 })}
-
                 <div className={`${styles.resumeDiv}`}>
-                    Total Real: {showCurrency(totalNewCargoFinal)}
+                    Total Real: {showCurrency(totalNewAbonoFinal)}
                 </div>
 
                 <div className={`${styles.acFormActions}`}>
@@ -115,17 +101,17 @@ const Loading = () => {
     )
 }
 
-const AgregarCargoModal = props => {
-    const { guardandoCargo } = useVars();
+const AgregarAbonoModal = props => {
+    const { guardandoAbono } = useVars();
     return (
         <GeneralModal
-            Component={!guardandoCargo ? Component : Loading}
+            Component={!guardandoAbono ? Component : Loading}
             lvl1="compras"
-            lvl2="agregarCargo"
+            lvl2="agregarAbono"
             cw={"90"}
             {...props}
         />
     )
 }
 
-export { AgregarCargoModal }
+export { AgregarAbonoModal }

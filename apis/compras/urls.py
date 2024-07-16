@@ -2,7 +2,7 @@ from django.urls import path
 
 from .api import (
     GuardarImagen, ValidarImagenesNoGuardadas, GuardarCompra, 
-    GetMyCompras, GetCompra, GuardarCargo, 
+    GetMyCompras, GetCompra, GuardarCargo, GuardarAbono, 
 )
 
 app_name = "api_compras"
@@ -13,4 +13,5 @@ urlpatterns = [
     path("get_my_compras/", GetMyCompras.as_view(), name=f"{app_name}_get_my_compras"),
     path("get_compra/", GetCompra.as_view(), name=f"{app_name}_get_compra"),
     path("guardar_cargo/", GuardarCargo.as_view(), name=f"{app_name}_guardar_cargo"),
+    path("guardar_abono/", GuardarAbono.as_view(), name=f"{app_name}_guardar_abono"),
 ]

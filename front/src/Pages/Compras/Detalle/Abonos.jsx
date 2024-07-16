@@ -1,12 +1,14 @@
 import { useVars } from "./myUse";
-import { showCurrency } from "../../../Core/helper";
+import { showCurrency, showDate } from "../../../Core/helper";
 
 const Abonos = props => {
     const { 
-        styles, toogleDetailView, abonoView, changeAbonoView, 
-        abonoListView, abonoTotalView, 
-        abonosGenerales, abonosExtra, abonosCompra, abonosExtraTotal, abonosTotal, 
-    } = useVars();
+        styles, abonoView, changeAbonoView, 
+        abonoListView, ordenar, validarOrdenTable } = useVars();
+
+    const order = mode => {
+        ordenar(mode, [...abonoListView], 'abonos');
+    }
 
     return (
         <div className={`${styles.abonosContainer}`}>
@@ -36,26 +38,37 @@ const Abonos = props => {
                     <table className={`${styles.table} table table-auto`}>
                         <thead>
                             <tr>
-                                <th>
-                                    Usuario
+                            <th className='text-start table-header' scope="col">
+                                    <button className='w-full m-0 bg-[#788] px-3 py-1 rounded-lg whitespace-nowrap'
+                                        onClick={() => {
+                                            order('usuario');
+                                        }}>
+                                        Usuario {validarOrdenTable('usuario')}
+                                    </button>
                                 </th>
-                                <th>
-                                    Articulo
+                                <th className='text-start table-header' scope="col">
+                                    <button className='w-full m-0 bg-[#788] px-3 py-1 rounded-lg whitespace-nowrap'
+                                        onClick={() => {
+                                            order('tipo');
+                                        }}>
+                                        Tipo {validarOrdenTable('tipo')}
+                                    </button>
                                 </th>
-                                <th>
-                                    Cantidad
+                                <th className='text-start table-header' scope="col">
+                                    <button className='w-full m-0 bg-[#788] px-3 py-1 rounded-lg whitespace-nowrap'
+                                        onClick={() => {
+                                            order('fecha_abono');
+                                        }}>
+                                        Fecha {validarOrdenTable('fecha_abono')}
+                                    </button>
                                 </th>
-                                <th>
-                                    Precio
-                                </th>
-                                <th>
-                                    Total
-                                </th>
-                                <th>
-                                    Abonado
-                                </th>
-                                <th>
-                                    Pendiente
+                                <th className='text-start table-header' scope="col">
+                                    <button className='w-full m-0 bg-[#788] px-3 py-1 rounded-lg whitespace-nowrap'
+                                        onClick={() => {
+                                            order('cantidad');
+                                        }}>
+                                        Cantidad {validarOrdenTable('cantidad')}
+                                    </button>
                                 </th>
                             </tr>
                         </thead>
@@ -80,29 +93,20 @@ const Abonos = props => {
 const ShowElement = props => {
     const { ele, index, styles } = props;
     const par = index % 2 === 0;
-    const { cantidad, descripcion, precio, total, total_abonado, usuario } = ele;
+    const { cantidad, tipo, fecha_abono, usuario } = ele;
     return (
         <tr className={`${styles[par ? 'par' : 'impar']}`}>
             <td>
                 { usuario }
             </td>
             <td>
-                { descripcion }
+                { tipo }
             </td>
             <td>
-                { cantidad }
+                { showDate(fecha_abono) }
             </td>
             <td>
-                { showCurrency(precio) }
-            </td>
-            <td>
-                { showCurrency(total) }
-            </td>
-            <td>
-                { showCurrency(total_abonado) }
-            </td>
-            <td>
-                { showCurrency(total - total_abonado) }
+                { showCurrency(cantidad) }
             </td>
         </tr>
     )

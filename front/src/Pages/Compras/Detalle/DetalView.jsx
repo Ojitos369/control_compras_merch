@@ -16,7 +16,7 @@ const DetalView = props => {
                 Cargos
             </button>
             <button 
-                className={`${styles.detailViewButton} ${detailView === 'details' ? styles.detailViewButtonActive : ''}`}
+                className={`${styles.detailViewButton} ${detailView === 'abonos' ? styles.detailViewButtonActive : ''}`}
                 onClick={() => toogleDetailView('abonos')}
             >
                 Abonos

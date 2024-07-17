@@ -203,19 +203,19 @@ const selectNull = props => {
 const sortList = (lista, mode, order) => {
     const newLista = lista.sort((a, b) => {
         if (order == 'asc') {
-            if (a[mode] > b[mode]) {
+            if ((a[mode] || '') > (b[mode] || '')) {
                 return -1;
             }
-            if (a[mode] < b[mode]) {
+            if ((a[mode] || '') < (b[mode] || '')) {
                 return 1;
             }
             return 0;
         }
         else {
-            if (a[mode] < b[mode]) {
+            if ((a[mode] || '') < (b[mode] || '')) {
                 return -1;
             }
-            if (a[mode] > b[mode]) {
+            if ((a[mode] || '') > (b[mode] || '')) {
                 return 1;
             }
             return 0;

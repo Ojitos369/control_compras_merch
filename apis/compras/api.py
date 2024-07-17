@@ -103,7 +103,7 @@ class ValidarImagenesNoGuardadas(GetApi):
             self.conexion.rollback()
             self.send_me_error("Error al eliminar las imágenes pendientes")
         self.conexion.commit()
-        
+
         self.response = {
             "message": "Imágenes eliminadas correctamente",
         }
@@ -259,13 +259,14 @@ class GetCompra(GetApi):
     def main(self):
         self.show_me()
         self.id_compra = self.data["compra_id"]
-        # compras, compras_usuarios, compras_det, cargos, abonos
+        # compras, compras_usuarios, compras_det, cargos, pagos
         self.get_compra()
         self.get_imagenes()
         self.get_compras_det()
         self.get_cargos()
-        self.get_abonos()
+        self.get_pagos()
         self.get_usuarios()
+        self.get_pagos_pendientes()
         
         self.response = {
             "compra": {
@@ -273,8 +274,9 @@ class GetCompra(GetApi):
                 "imagenes": self.imagenes,
                 "articulos": self.compras_det,
                 "cargos": self.cargos,
-                "abonos": self.abonos,
+                "pagos": self.pagos,
                 "usuarios": self.usuarios,
+                "pagos_pendientes": self.pagos_pendientes,
             }
         }
         # pj(self.response)
@@ -291,8 +293,9 @@ class GetCompra(GetApi):
                 from compras_det
                 where compra_id = c.id_compra) total_deuda,
                 (select sum(cantidad)
-                from abonos
+                from pagos
                 where compra_id = c.id_compra
+                and validado = 1
                 and tipo='compra') total_abonado,
                 (select min(fecha_limite)
                 from cargos
@@ -327,9 +330,10 @@ class GetCompra(GetApi):
                 FROM (SELECT cd.*, 
                         u.usuario,
                         (select nvl(sum(cantidad), 0)
-                        from abonos
+                        from pagos
                         where compra_det_id = cd.id_compra_det
                         and tipo = 'compra'
+                        and validado = 1
                         and usuario_id = cd.usuario_id) total_abonado
                 FROM compras_det cd, usuarios u
                 WHERE compra_id = :id_compra AND cd.usuario_id = u.id_usuario) t
@@ -351,15 +355,15 @@ class GetCompra(GetApi):
         self.cargos = self.conexion.consulta_asociativa(query, query_data)
         self.cargos_ids = [i["id_cargo"] for i in self.cargos]
 
-    def get_abonos(self):
+    def get_pagos(self):
         query = """SELECT a.* , (select usuario from usuarios where id_usuario = a.usuario_id) as usuario
-                FROM abonos a
+                FROM pagos a
                 WHERE compra_id = :id_compra """
         query_data = {
             "id_compra": self.id_compra,
         }
-        self.abonos = self.conexion.consulta_asociativa(query, query_data)
-        self.abonos_ids = [i["id_abono"] for i in self.abonos]
+        self.pagos = self.conexion.consulta_asociativa(query, query_data)
+        self.pagos_ids = [i["id_pago"] for i in self.pagos]
     
     def get_usuarios(self):
         query = """SELECT u.usuario, cu.porcentaje, u.id_usuario, cd.descripcion, cu.compra_det_id
@@ -373,6 +377,15 @@ class GetCompra(GetApi):
         }
         self.usuarios = self.conexion.consulta_asociativa(query, query_data)
 
+    def get_pagos_pendientes(self):
+        query = """SELECT a.* , (select usuario from usuarios where id_usuario = a.usuario_id) as usuario,
+                (select descripcion from compras_det where id_compra_det = a.compra_det_id) as descripcion
+                FROM pagos a
+                WHERE compra_id = :id_compra AND validado = 0 """
+        query_data = {
+            "id_compra": self.id_compra,
+        }
+        self.pagos_pendientes = self.conexion.consulta_asociativa(query, query_data)
 
 class GetMyCompras(GetApi):
     def main(self):
@@ -399,7 +412,6 @@ class GetMyCompras(GetApi):
         r = self.conexion.consulta_asociativa(query, query_data)
         compras_ids = list(set([i["compra_id"] for i in r]))
         self.compras_ids = list(set(compras_ids))
-    
     
     def get_images(self):
         self.images = {}
@@ -431,14 +443,67 @@ class GetMyCompras(GetApi):
                         from compras_det 
                         where compra_id = c.id_compra
                         and usuario_id = :id_usuario) as cantidad_items,
+
                         (select sum(total)
-                        from compras_det
+                        from cargos
                         where compra_id = c.id_compra
-                        and usuario_id = :id_usuario) as total_deuda,
+                        and usuario_id = :id_usuario) as total_usuario,
+                        (select sum(total)
+                        from cargos
+                        where compra_id = c.id_compra
+                        and tipo = 'compra'
+                        and usuario_id = :id_usuario) as total_usuario_compra,
+                        (select sum(total)
+                        from cargos
+                        where compra_id = c.id_compra
+                        and tipo != 'compra'
+                        and usuario_id = :id_usuario) as total_usuario_cargos,
+
+                        (select sum(total)
+                        from cargos
+                        where compra_id = c.id_compra) as total_compra,
+                        (select sum(total)
+                        from cargos
+                        where compra_id = c.id_compra
+                        and tipo = 'compra') as total_compra_compra,
+                        (select sum(total)
+                        from cargos
+                        where compra_id = c.id_compra
+                        and tipo != 'compra') as total_compra_cargos,
+
                         (select sum(cantidad)
-                        from abonos
+                        from pagos
                         where compra_id = c.id_compra
-                        and usuario_id = :id_usuario) as total_abonado,
+                        and validado = 1
+                        and usuario_id = :id_usuario) as total_abonado_usuario,
+                        (select sum(cantidad)
+                        from pagos
+                        where compra_id = c.id_compra
+                        and validado = 1
+                        and tipo = 'compra'
+                        and usuario_id = :id_usuario) as total_abonado_usuario_compra,
+                        (select sum(cantidad)
+                        from pagos
+                        where compra_id = c.id_compra
+                        and validado = 1
+                        and tipo != 'compra'
+                        and usuario_id = :id_usuario) as total_abonado_usuario_cargos,
+
+                        (select sum(cantidad)
+                        from pagos
+                        where compra_id = c.id_compra
+                        and validado = 1) as total_abonado,
+                        (select sum(cantidad)
+                        from pagos
+                        where compra_id = c.id_compra
+                        and validado = 1
+                        and tipo = 'compra') as total_abonado_compra,
+                        (select sum(cantidad)
+                        from pagos
+                        where compra_id = c.id_compra
+                        and validado = 1
+                        and tipo != 'compra') as total_abonado_cargos,
+
                         (select min(fecha_limite)
                         from cargos
                         where compra_id = c.id_compra
@@ -469,7 +534,6 @@ class GetMyCompras(GetApi):
         
         for c in self.compras:
             c["images"] = self.images.get(c["id_compra"], [])
-
 
 class GuardarCargo(PostApi):
     def main(self):
@@ -600,12 +664,14 @@ class GuardarCargo(PostApi):
         }
 
 
-class GuardarAbono(PostApi):
+class GuardarPago(PostApi):
     def main(self):
         self.show_me()
+        self.reparse_data()
         self.compra_id = self.data["compra_id"]
+        self.guardar_comprobante()
         self.validarCreador()
-        self.add_abono()
+        self.add_pago()
     
     def validarCreador(self):
         query = """SELECT creado_por
@@ -617,33 +683,37 @@ class GuardarAbono(PostApi):
         compra = self.conexion.consulta_asociativa(query, query_data)
         if not compra:
             raise self.MYE("No se encontró la compra")
-        if (compra[0]["creado_por"] != self.user["id_usuario"]):
-            raise self.MYE("No tienes permiso para realizar esta acción")
+        self.validado = (compra[0]["creado_por"] == self.user["id_usuario"])
 
-    def add_abono(self):
+    def add_pago(self):
         total = self.data.get("total", 0)
         tipo = self.data["tipo"]
         perUser = get_d(self.data, "perUser", default={})
-        query = """INSERT INTO abonos
-                (id_abono, cantidad, tipo, compra_det_id, compra_id, usuario_id)
+        query = """INSERT INTO pagos
+                (id_pago, cantidad, tipo, compra_det_id, compra_id, usuario_id, validado, comprobante)
                 VALUES
-                (:id_abono, :cantidad, :tipo, :compra_det_id, :compra_id, :usuario_id)
+                (:id_pago, :cantidad, :tipo, :compra_det_id, :compra_id, :usuario_id, :validado, :comprobante)
             """
             
         query_data = {
             "compra_id": self.compra_id,
             "tipo": tipo,
+            "validado": self.validado,
+            "comprobante": self.comprobante,
         }
 
         for user in self.data["usuarios"]:
-            id_abono = str(uuid.uuid4())
+            id_pago = str(uuid.uuid4())
             compra_det_id = user["compra_det_id"]
             if (compra_det_id in perUser and not perUser[compra_det_id]) or (compra_det_id not in perUser and not total):
                 continue
-            query_data["id_abono"] = id_abono
+            if float(perUser[compra_det_id]) < 0.5:
+                continue
+            
+            query_data["id_pago"] = id_pago
             query_data["usuario_id"] = user["id_usuario"]
             query_data["compra_det_id"] = compra_det_id
-            
+
             if compra_det_id in perUser:
                 query_data["cantidad"] = float(perUser[compra_det_id])
             else:
@@ -652,15 +722,16 @@ class GuardarAbono(PostApi):
 
             if not(self.conexion.ejecutar(query, query_data)):
                 self.conexion.rollback()
-                raise Exception("Error al guardar el abono")
+                raise Exception("Error al guardar el pago")
             self.conexion.commit()
-            
-            self.add_kardex(user["id_usuario"], query_data["cantidad"], id_abono, tipo)
-        
-    def add_kardex(self, usuario_id, cantidad, tipo_id, tipo_abono):
+
+            if self.validado:
+                self.add_kardex(user["id_usuario"], query_data["cantidad"], id_pago, tipo)
+
+    def add_kardex(self, usuario_id, cantidad, tipo_id, tipo_pago):
         id_kardex = str(uuid.uuid4())
-        tipo = "abono"
-        comentario = f"Abono por {tipo_abono}"
+        tipo = "pago"
+        comentario = f"Pago por {tipo_pago}"
 
         ''' 
         query = """ INSERT INTO kardex
@@ -695,6 +766,32 @@ class GuardarAbono(PostApi):
             raise Exception("Error al guardar el kardex")
         self.conexion.commit()
 
+    def reparse_data(self):
+        data_str_json = self.request.data["data"]
+        self.data = json.loads(data_str_json)
+
+    def guardar_comprobante(self):
+        file_id = str(uuid.uuid4())
+        try:
+            file = self.request.FILES['comprobante']
+        except:
+            file = None
+        if not file:
+            self.comprobante = None
+            return
+
+        file_name = file.name
+        _, file_extension = file_name.split('.')
+        file_name = f"{file_id}.{file_extension}"
+        path_save = f'{STATIC_DIR}/compras/{self.compra_id}/comprobantes'
+        if not os.path.exists(path_save):
+            os.makedirs(path_save)
+
+        with open(f'{path_save}/{file_name}', 'wb+') as destination:
+            for chunk in file.chunks():
+                destination.write(chunk)
+        self.comprobante = file_name
+
     def example_data(self):
         data = {
             "compra_id": "1b745759-3db4-4c3b-9a8c-bbd9812b8e01",
@@ -726,6 +823,39 @@ class GuardarAbono(PostApi):
             "fecha_limite": "2024-07-31"
         }
 
+
+class ValidarPago(PostApi):
+    def main(self):
+        self.show_me()
+        self.compra_id = self.data["compra_id"]
+        self.validarCreador()
+        self.validar_pago()
+    
+    def validarCreador(self):
+        query = """SELECT creado_por
+                FROM compras
+                WHERE id_compra = :compra_id """
+        query_data = {
+            "compra_id": self.compra_id,
+        }
+        compra = self.conexion.consulta_asociativa(query, query_data)
+        if not compra:
+            raise self.MYE("No se encontró la compra")
+        if (compra[0]["creado_por"] != self.user["id_usuario"]):
+            raise self.MYE("No tienes permiso para realizar esta acción")
+
+    def validar_pago(self):
+        id_pago = self.data["id_pago"]
+        query = """UPDATE pagos
+                SET validado = 1
+                WHERE id_pago = :id_pago """
+        query_data = {
+            "id_pago": id_pago,
+        }
+        if not(self.conexion.ejecutar(query, query_data)):
+            self.conexion.rollback()
+            raise Exception("Error al validar el pago")
+        self.conexion.commit()
 
 
 """ 

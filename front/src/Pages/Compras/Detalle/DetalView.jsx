@@ -16,10 +16,10 @@ const DetalView = props => {
                 Cargos
             </button>
             <button 
-                className={`${styles.detailViewButton} ${detailView === 'abonos' ? styles.detailViewButtonActive : ''}`}
-                onClick={() => toogleDetailView('abonos')}
+                className={`${styles.detailViewButton} ${detailView === 'pagos' ? styles.detailViewButtonActive : ''}`}
+                onClick={() => toogleDetailView('pagos')}
             >
-                Abonos
+                Pagos
             </button>
         </div>
     )

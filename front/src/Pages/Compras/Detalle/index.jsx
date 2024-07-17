@@ -7,12 +7,13 @@ import { Generales } from "./Generales";
 import { DetalView } from "./DetalView";
 import { Articulos } from "./Articulos";
 import { Cargos } from "./Cargos";
-import { Abonos } from "./Abonos";
+import { Pagos } from "./Pagos";
 import { AgregarCargoModal } from "./Modals/AgregarCargoModal";
-import { AgregarAbonoModal } from "./Modals/AgregarAbonoModal";
+import { AgregarPagoModal } from "./Modals/AgregarPagoModal";
+import { RevisarPagosModal } from "./Modals/RevisarPagosModal";
 
 const Detalle = props => {
-    const { styles, cargandoCompra, detailView, keyExec, showAgregarCargo, showAgregarAbono } = useVars();
+    const { styles, cargandoCompra, detailView, keyExec, showAgregarCargo, showAgregarPago, showRevisarPagos } = useVars();
 
     useMyEffects();
 
@@ -32,9 +33,10 @@ const Detalle = props => {
             <DetalView />
             {detailView === 'compra' && <Articulos />}
             {detailView === 'cargos' && <Cargos />}
-            {detailView === 'abonos' && <Abonos />}
+            {detailView === 'pagos' && <Pagos />}
             {showAgregarCargo && <AgregarCargoModal />}
-            {showAgregarAbono && <AgregarAbonoModal />}
+            {showAgregarPago && <AgregarPagoModal />}
+            {showRevisarPagos && <RevisarPagosModal />}
         </section>
     )
 }
@@ -42,7 +44,7 @@ const Detalle = props => {
 const ListenKeys = props => {
     const { keyExec, validaMK } = useVars();
     // ---------------------------------------------   KEYBOARD EVENTS   --------------------------------------------- #
-    useKeyDown(validaMK, ['alt', 'a', 'c'], keyExec);
+    useKeyDown(validaMK, ['alt', 'p', 'c', 'v'], keyExec);
 
     useKeyUp(null, ['any'], keyExec);
     // ---------------------------------------------   /KEYBOARD EVENTS   --------------------------------------------- #

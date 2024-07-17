@@ -323,17 +323,24 @@ const useF = props => {
                 u2('loadings', 'compras', 'guardarCargo', false);
             });
         },
-        guardarAbono: (compra_id, usuarios) => {
-            if (s.loadings?.compras?.guardarAbono) return;
-            u2('loadings', 'compras', 'guardarAbono', true);
+        guardarPago: (compra_id, usuarios) => {
+            if (s.loadings?.compras?.guardarPago) return;
+            u2('loadings', 'compras', 'guardarPago', true);
 
-            const end = 'compras/guardar_abono/';
+            const end = 'compras/guardar_pago/';
             const data = {
                 compra_id, usuarios,
-                ...s.compras?.newAbono?.data || {}
+                ...s.compras?.newPago?.data || {}
             }
 
-            miAxios.post(end, data)
+            const inputFile = document.getElementById('comprobante_pago');
+            const comprobante = inputFile.files[0];
+
+            const formData = new FormData();
+            formData.append('comprobante', comprobante);
+            formData.append('data', JSON.stringify(data));
+
+            miAxios.post(end, formData)
             .then(response => {
                 const message = response.data.message;
                 general.notificacion({
@@ -341,8 +348,8 @@ const useF = props => {
                     title: 'Guardado con exito',
                     message: message || "Guardado con exito"
                 });
-                u2('modals', 'compras', 'agregarAbono', false);
-                u2('compras', 'newAbono', 'data', null);
+                u2('modals', 'compras', 'agregarPago', false);
+                u2('compras', 'newPago', 'data', null);
                 compras.getCompra(compra_id);
             }).catch(error => {
                 const message = error.response.data.message;
@@ -352,9 +359,36 @@ const useF = props => {
                     message: message || "Error al guardar"
                 });
             }).finally(() => {
-                u2('loadings', 'compras', 'guardarAbono', false);
+                u2('loadings', 'compras', 'guardarPago', false);
+                inputFile.files = null;
             });
         },
+        validarPago: pago => {
+            if (s.loadings?.compras?.validarPago) return;
+            u2('loadings', 'compras', 'validarPago', true);
+
+            const end = 'compras/validar_pago/';
+
+            miAxios.post(end, pago)
+            .then(response => {
+                const message = response.data.message;
+                general.notificacion({
+                    mode: 'success',
+                    title: 'Validado con exito',
+                    message: message || "Validado con exito"
+                });
+                compras.getCompra(pago.compra_id);
+            }).catch(error => {
+                const message = error.response.data.message;
+                general.notificacion({
+                    mode: 'danger',
+                    title: 'Error al validar',
+                    message: message || "Error al validar"
+                });
+            }).finally(() => {
+                u2('loadings', 'compras', 'validarPago', false);
+            });
+        }
     }
 
     const dd = {

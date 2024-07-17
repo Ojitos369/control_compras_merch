@@ -1,7 +1,7 @@
 import { useVars } from "./myUse";
-import { Piggy, Revenue, MoneyMouthFace } from "../../../Components/Icons";
+import { Piggy, CardPayment, MoneyMouthFace, CheckList } from "../../../Components/Icons";
 const Acciones = props => {
-    const { styles, agregarAbono, agregarCargo, creadorCompra } = useVars();
+    const { styles, agregarPago, agregarCargo, revisarPagos, creadorCompra } = useVars();
     return (
         <div className={`${styles.accionesContainer}`}>
             {creadorCompra && 
@@ -16,10 +16,28 @@ const Acciones = props => {
             {creadorCompra && 
             <div className={`${styles.actionDiv}`}>
                 <span 
-                    data-tooltip-id="global" data-tooltip-content="Agregar Abono Alt+A"
+                    data-tooltip-id="global" data-tooltip-content="Agregar Pago Alt+P"
                     className={`${styles.actionIcon}`}
-                    onClick={agregarAbono}>
+                    onClick={agregarPago}>
                     <Piggy />
+                </span>
+            </div>}
+            {!creadorCompra &&
+            <div className={`${styles.actionDiv}`}>
+                <span 
+                    data-tooltip-id="global" data-tooltip-content="Enviar ¨Pago Alt+P"
+                    className={`${styles.actionIcon}`}
+                    onClick={agregarPago}>
+                    <CardPayment />
+                </span>
+            </div>}
+            {creadorCompra && 
+            <div className={`${styles.actionDiv}`}>
+                <span 
+                    data-tooltip-id="global" data-tooltip-content="Revisar Pagos Alt+R"
+                    className={`${styles.actionIcon}`}
+                    onClick={revisarPagos}>
+                    <CheckList />
                 </span>
             </div>}
         </div>

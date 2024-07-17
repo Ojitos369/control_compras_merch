@@ -1,33 +1,33 @@
 import { useVars } from "./myUse";
 import { showCurrency, showDate } from "../../../Core/helper";
 
-const Abonos = props => {
+const Pagos = props => {
     const { 
-        styles, abonoView, changeAbonoView, 
-        abonoListView, ordenar, validarOrdenTable } = useVars();
+        styles, pagoView, changePagoView, 
+        pagoListView, ordenar, validarOrdenTable, compra_id, imgLink } = useVars();
 
     const order = mode => {
-        ordenar(mode, [...abonoListView], 'abonos');
+        ordenar(mode, [...pagoListView], 'pagos');
     }
 
     return (
-        <div className={`${styles.abonosContainer}`}>
-            <div className={`${styles.abonoViewContainer}`}>
+        <div className={`${styles.pagosContainer}`}>
+            <div className={`${styles.pagoViewContainer}`}>
                 <button 
-                    className={`${styles.abonoViewButton} ${abonoView === 'todo' ? styles.abonoViewButtonActive : ''}`}
-                    onClick={() => changeAbonoView('todo')}
+                    className={`${styles.pagoViewButton} ${pagoView === 'todo' ? styles.pagoViewButtonActive : ''}`}
+                    onClick={() => changePagoView('todo')}
                 >
                     Todo
                 </button>
                 <button 
-                    className={`${styles.abonoViewButton} ${abonoView === 'extra' ? styles.abonoViewButtonActive : ''}`}
-                    onClick={() => changeAbonoView('extra')}
+                    className={`${styles.pagoViewButton} ${pagoView === 'extra' ? styles.pagoViewButtonActive : ''}`}
+                    onClick={() => changePagoView('extra')}
                 >
                     Extra
                 </button>
                 <button 
-                    className={`${styles.abonoViewButton} ${abonoView === 'compra' ? styles.abonoViewButtonActive : ''}`}
-                    onClick={() => changeAbonoView('compra')}
+                    className={`${styles.pagoViewButton} ${pagoView === 'compra' ? styles.pagoViewButtonActive : ''}`}
+                    onClick={() => changePagoView('compra')}
                 >
                     Compra
                 </button>
@@ -57,9 +57,17 @@ const Abonos = props => {
                                 <th className='text-start table-header' scope="col">
                                     <button className='w-full m-0 bg-[#788] px-3 py-1 rounded-lg whitespace-nowrap'
                                         onClick={() => {
-                                            order('fecha_abono');
+                                            order('validado');
                                         }}>
-                                        Fecha {validarOrdenTable('fecha_abono')}
+                                        Status {validarOrdenTable('validado')}
+                                    </button>
+                                </th>
+                                <th className='text-start table-header' scope="col">
+                                    <button className='w-full m-0 bg-[#788] px-3 py-1 rounded-lg whitespace-nowrap'
+                                        onClick={() => {
+                                            order('fecha_pago');
+                                        }}>
+                                        Fecha {validarOrdenTable('fecha_pago')}
                                     </button>
                                 </th>
                                 <th className='text-start table-header' scope="col">
@@ -70,16 +78,26 @@ const Abonos = props => {
                                         Cantidad {validarOrdenTable('cantidad')}
                                     </button>
                                 </th>
+                                <th className='text-start table-header' scope="col">
+                                    <button className='w-full m-0 bg-[#788] px-3 py-1 rounded-lg whitespace-nowrap'
+                                        onClick={() => {
+                                            order('comprobante');
+                                        }}>
+                                        Comprobante {validarOrdenTable('comprobante')}
+                                    </button>
+                                </th>
                             </tr>
                         </thead>
 
                         <tbody>
-                            {abonoListView.map((ele, i) => {
+                            {pagoListView.map((ele, i) => {
                                 return (<ShowElement
                                     key={i}
                                     ele={ele}
                                     index={i}
                                     styles={styles}
+                                    compra_id={compra_id}
+                                    imgLink={imgLink}
                                 />)
                             })}
                         </tbody>
@@ -91,9 +109,10 @@ const Abonos = props => {
 }
 
 const ShowElement = props => {
-    const { ele, index, styles } = props;
+    const { ele, index, styles, compra_id, imgLink } = props;
     const par = index % 2 === 0;
-    const { cantidad, tipo, fecha_abono, usuario } = ele;
+    const { cantidad, tipo, fecha_pago, usuario, validado, comprobante } = ele;
+    const link = comprobante ? `${imgLink}/${compra_id}/comprobantes/${comprobante}` : '';
     return (
         <tr className={`${styles[par ? 'par' : 'impar']}`}>
             <td>
@@ -103,14 +122,25 @@ const ShowElement = props => {
                 { tipo }
             </td>
             <td>
-                { showDate(fecha_abono) }
+                { validado ? 'Validado' : 'Pendiente' }
+            </td>
+            <td>
+                { showDate(fecha_pago) }
             </td>
             <td>
                 { showCurrency(cantidad) }
+            </td>
+            <td>
+                { comprobante ? 
+                <a href={link} target='_blank' className={`${styles.comprobante}`}>
+                    Ver {comprobante}
+                </a> : 
+                'Sin Comprobante' 
+                }
             </td>
         </tr>
     )
 }
 
-export { Abonos };
+export { Pagos };
 

@@ -231,19 +231,19 @@
             }
         }
     }
-    .abonosContainer {
+    .pagosContainer {
         width: 100%;
         display: flex;
         justify-content: center;
         flex-wrap: wrap;
         margin-top: 15px;
-        .abonoViewContainer {
+        .pagoViewContainer {
             width: 60%;
             display: flex;
             flex-direction: row;
             justify-content: center;
             margin-top: 15px;
-            .abonoViewButton {
+            .pagoViewButton {
                 width: 100%;
                 padding: 3px;
                 font-size: 1.2rem;
@@ -255,7 +255,7 @@
                     background-color: var(--mn);
                     color: #000;
                 }
-                &.abonoViewButtonActive {
+                &.pagoViewButtonActive {
                     background-color: var(--ty);
                     color: white;
                     &:hover {
@@ -291,21 +291,35 @@
                             padding: 5px 15px;
                             white-space: nowrap;
                             font-size: 0.9rem;
+                            .comprobante {
+                                font-weight: bold;
+                                cursor: pointer;
+                                color: var(--mn);
+                            }
                         }
                         &.par {
                             background-color: #888;
                             td {
                                 border: 1px solid #000;
                                 color: #000;
+                                .comprobante {
+                                    color: var(--dh);
+                                }
                             }
                         }
                         &:hover {
                             background-color: var(--my-primary);
                             td {
                                 color: white;
+                                .comprobante {
+                                    color: var(--jh);
+                                }
                                 &:hover {
                                     background-color: white;
                                     color: var(--my-primary);
+                                    .comprobante {
+                                        color: var(--cy);
+                                    }
                                 }
                             }
                         }
@@ -314,7 +328,7 @@
             }
         }
     }
-    .agregarCargoModal, .agregarAbonoModal {
+    .agregarCargoModal, .agregarPagoModal {
         width: 100%;
         .acTitle {
             width: 100%;

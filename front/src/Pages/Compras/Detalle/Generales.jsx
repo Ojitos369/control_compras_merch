@@ -2,7 +2,7 @@ import { useVars } from "./myUse";
 import { showCurrency, showDate } from "../../../Core/helper";
 
 const Generales = props => {
-    const { styles, compra, abonosExtraTotal, cargosExtraTotal, abonosTotal, cargosTotal, convertLink } = useVars();
+    const { styles, compra, pagosExtraTotal, cargosExtraTotal, pagosTotal, cargosTotal, convertLink } = useVars();
     const { descripcion_compra, fecha_compra, link, nombre_compra, origen, fecha_limite, total, total_abonado=0 } = compra;
 
     return (
@@ -45,7 +45,7 @@ const Generales = props => {
                     Cargos:
                 </p>
                 <p className={`${styles.total}`}>
-                    {showCurrency(abonosExtraTotal)}/{showCurrency(cargosExtraTotal)}
+                    {showCurrency(pagosExtraTotal)}/{showCurrency(cargosExtraTotal)}
                 </p>
             </div>
             <div className={`${styles.totalContainer}`}>
@@ -53,7 +53,7 @@ const Generales = props => {
                     Total:
                 </p>
                 <p className={`${styles.total}`}>
-                    {showCurrency(abonosTotal)}/{showCurrency(cargosTotal)}
+                    {showCurrency(pagosTotal)}/{showCurrency(cargosTotal)}
                 </p>
             </div>
         </div>

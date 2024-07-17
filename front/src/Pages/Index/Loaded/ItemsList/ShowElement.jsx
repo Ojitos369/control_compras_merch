@@ -34,6 +34,7 @@ const ShowElement = props => {
     } = element;
     const [bgUrl, setBgUrl] = useState(images.length > 0 ? `${imgLink}/${images[0]?.compra_id}/preview/${images[0]?.filename}` : '');
     const [actualIndex, setActualIndex] = useState(0);
+    const [isHover, setIsHover] = useState(false);
 
     const updateBgUrl = index => {
         let newIndex = index;
@@ -48,7 +49,11 @@ const ShowElement = props => {
 
     return (
         <div className={`${styles.elementContainer}`}>
-            <div className={`${styles.card}`}>
+            <div 
+                className={`${styles.card}`}
+                onMouseEnter={() => setIsHover(true)}
+                onMouseLeave={() => setIsHover(false)}
+                >
                 <div className={`${styles.fecha}`}>
                     {showDate(fecha_compra)}
                 </div>
@@ -128,53 +133,55 @@ const ShowElement = props => {
                     </div>
                     {/* ----------------------------   /ARTICULOS, FECHA LIMITE, ORIGEN   ---------------------------- */}
 
-                    {/* ----------------------------   USUARIO (TOTAL, COMPRA, CARGOS)   ---------------------------- */}
-                    <p className="w-full">Usuario</p>
-                    <div className={`${styles.row} ${styles.row1}`}>
-                        <div className={`${styles.item}`}>
-                            <span className={`${styles.bigText}`}>Total</span>
-                            <span className={`${styles.regularText}`}>
-                                {showCurrency(total_abonado_usuario)}/{showCurrency(total_usuario)}
-                            </span>
+                    <div className={`${styles.aditional_info} ${isHover ? styles.showInfo : styles.hiddeInfo}`}>
+                        {/* ----------------------------   USUARIO (TOTAL, COMPRA, CARGOS)   ---------------------------- */}
+                        <p className={`${styles.sub_title}`}>Usuario</p>
+                        <div className={`${styles.row} ${styles.row1}`}>
+                            <div className={`${styles.item}`}>
+                                <span className={`${styles.bigText}`}>Total</span>
+                                <span className={`${styles.regularText}`}>
+                                    {showCurrency(total_abonado_usuario)}/{showCurrency(total_usuario)}
+                                </span>
+                            </div>
+                            <div className={`${styles.item}`}>
+                                <span className={`${styles.bigText}`}>Compra</span>
+                                <span className={`${styles.regularText}`}>
+                                    {showCurrency(total_abonado_usuario_compra)}/{showCurrency(total_usuario_compra)}
+                                </span>
+                            </div>
+                            <div className={`${styles.item}`}>
+                                <span className={`${styles.bigText}`}>Cargos</span>
+                                <span className={`${styles.regularText}`}>
+                                    {showCurrency(total_abonado_usuario_cargos)}/{showCurrency(total_usuario_cargos)}
+                                </span>
+                            </div>
                         </div>
-                        <div className={`${styles.item}`}>
-                            <span className={`${styles.bigText}`}>Compra</span>
-                            <span className={`${styles.regularText}`}>
-                                {showCurrency(total_abonado_usuario_compra)}/{showCurrency(total_usuario_compra)}
-                            </span>
-                        </div>
-                        <div className={`${styles.item}`}>
-                            <span className={`${styles.bigText}`}>Cargos</span>
-                            <span className={`${styles.regularText}`}>
-                                {showCurrency(total_abonado_usuario_cargos)}/{showCurrency(total_usuario_cargos)}
-                            </span>
-                        </div>
-                    </div>
-                    {/* ----------------------------   /USUARIO (TOTAL, COMPRA, CARGOS)   ---------------------------- */}
+                        {/* ----------------------------   /USUARIO (TOTAL, COMPRA, CARGOS)   ---------------------------- */}
 
-                    {/* ----------------------------   GENERAL (TOTAL, COMPRA, CARGOS)   ---------------------------- */}
-                    <p className="w-full">General</p>
-                    <div className={`${styles.row} ${styles.row1}`}>
-                        <div className={`${styles.item}`}>
-                            <span className={`${styles.bigText}`}>Total</span>
-                            <span className={`${styles.regularText}`}>
-                                {showCurrency(total_abonado)}/{showCurrency(total_compra)}
-                            </span>
+                        {/* ----------------------------   GENERAL (TOTAL, COMPRA, CARGOS)   ---------------------------- */}
+                        <p className={`${styles.sub_title}`}>General</p>
+                        <div className={`${styles.row} ${styles.row1}`}>
+                            <div className={`${styles.item}`}>
+                                <span className={`${styles.bigText}`}>Total</span>
+                                <span className={`${styles.regularText}`}>
+                                    {showCurrency(total_abonado)}/{showCurrency(total_compra)}
+                                </span>
+                            </div>
+                            <div className={`${styles.item}`}>
+                                <span className={`${styles.bigText}`}>Compra</span>
+                                <span className={`${styles.regularText}`}>
+                                    {showCurrency(total_abonado_compra)}/{showCurrency(total_compra_compra)}
+                                </span>
+                            </div>
+                            <div className={`${styles.item}`}>
+                                <span className={`${styles.bigText}`}>Cargos</span>
+                                <span className={`${styles.regularText}`}>
+                                    {showCurrency(total_abonado_cargos)}/{showCurrency(total_compra_cargos)}
+                                </span>
+                            </div>
                         </div>
-                        <div className={`${styles.item}`}>
-                            <span className={`${styles.bigText}`}>Compra</span>
-                            <span className={`${styles.regularText}`}>
-                                {showCurrency(total_abonado_compra)}/{showCurrency(total_compra_compra)}
-                            </span>
-                        </div>
-                        <div className={`${styles.item}`}>
-                            <span className={`${styles.bigText}`}>Cargos</span>
-                            <span className={`${styles.regularText}`}>
-                                {showCurrency(total_abonado_cargos)}/{showCurrency(total_compra_cargos)}
-                            </span>
-                        </div>
+                        {/* ----------------------------   /GENERAL (TOTAL, COMPRA, CARGOS)   ---------------------------- */}
                     </div>
-                    {/* ----------------------------   /GENERAL (TOTAL, COMPRA, CARGOS)   ---------------------------- */}
 
                     {!!link &&
                     <div className={`${styles.row} ${styles.row1}`}>

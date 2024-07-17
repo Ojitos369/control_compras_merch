@@ -12,8 +12,9 @@
         .compra {
             .elementContainer {
                 margin-bottom: 20px;
+                padding: 50px 15px;
                 .card {
-                    width: 330px;
+                    width: 300px;
                     border-radius: 20px;
                     background: var(--sn);
                     padding: 5px;
@@ -119,27 +120,38 @@
                                 }
                             }
                         }
-                        .description {
+                        .descripion {
                             display: block;
                             font-size: 0.7rem;
                             text-align: end;
                             width: 100%;
                             padding: 0 15px;
                         }
+                        .sub_title {
+                            display: flex;
+                            width: 100%;
+                            font-size: 14px;
+                            text-align: start;
+                            font-weight: 800;
+                            padding: 0 15px;
+                            margin: 0;
+                        }
                         .row {
                             display: flex;
                             justify-content: space-between;
+                            border-bottom: 1px solid #000;
+                            width: 100%;
                             .item {
                                 width: auto;
                                 text-align: center;
-                                padding: 5px;
+                                padding: 0 5px;
                                 color: #000;
                                 .bigText {
-                                    font-size: 14px;
+                                    font-size: 13px;
                                     display: block;
                                 }
                                 .regularText {
-                                    font-size: 12px;
+                                    font-size: 11px;
                                 }
                             }
                             &:nth-child(2) {
@@ -154,9 +166,56 @@
                                 }
                             }
                         }
+                        .aditional_info {
+                            display: flex;
+                            flex-wrap: wrap;
+                            width: 100%;
+                            height: auto;
+                            padding: 0;
+                            margin: 0;
+                            overflow: hidden;
+                            &.showInfo {
+                                height: auto;
+                                padding: 0;
+                                margin: 0;
+                                overflow: hidden;
+                                animation: showInfo 0.7s;
+                            }
+                            &.hiddeInfo {
+                                height: 0px;
+                                padding: 0;
+                                margin: 0;
+                                overflow: hidden;
+                                animation: hiddeInfo 0.7s;
+                            }
+                        }
                     }
                   }
             }
         }
+    }
+}
+
+@keyframes showInfo {
+    from {
+        height: 0px;
+        padding: 0;
+        margin: 0;
+        overflow: hidden;
+    }
+    to {
+        height: 150px;
+    }
+}
+
+@keyframes hiddeInfo {
+    from {
+        height: 150px;
+    }
+    to {
+        height: 0px;
+        padding: 0;
+        margin: 0;
+        overflow: hidden;
     }
 }

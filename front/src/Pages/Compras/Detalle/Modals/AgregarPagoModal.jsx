@@ -2,7 +2,7 @@ import { useEffect } from "react";
 import { GeneralModal } from "../../../../Components/Modals/GeneralModal";
 import { useStates } from "../../../../Hooks/useStates";
 import { useVars } from "../myUse";
-import { showCurrency } from "../../../../Core/helper";
+import { showCurrency, justNumbers } from "../../../../Core/helper";
 import { TwiceLogo } from "../../../../Components/Loaders/TwiceLogo";
 
 const Component = props => {
@@ -12,6 +12,9 @@ const Component = props => {
 
     useEffect(() => {
         f.u2('compras', 'newPago', 'data', {tipo: 'compra'});
+        const ele = document.getElementById('total_pago');
+        ele.focus();
+        ele.select();
     }, []);
     return (
         <div className={`${styles.agregarPagoModal}`}>
@@ -29,9 +32,10 @@ const Component = props => {
                         </label>
                         <input 
                             className={`${styles.acInput}`}
-                            type="number"
+                            type="text"
                             value={total}
-                            onChange={e => updateNewPago('total', e.target.value)}
+                            id="total_pago"
+                            onChange={e => updateNewPago('total', justNumbers(e.target.value))}
                         />
                     </div>
                 </div>
@@ -74,9 +78,9 @@ const Component = props => {
                                 </label>
                                 <input 
                                     className={`${styles.acInput}`}
-                                    type="number"
+                                    type="text"
                                     value={cantidad}
-                                    onChange={e => upgradePerUserPago(usuario.compra_det_id, e.target.value)}
+                                    onChange={e => upgradePerUserPago(usuario.compra_det_id, justNumbers(e.target.value))}
                                 />
                             </div>
                         </div>

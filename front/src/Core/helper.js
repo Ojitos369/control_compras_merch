@@ -224,6 +224,29 @@ const sortList = (lista, mode, order) => {
     return newLista;
 }
 
+const justNumbers = text => {
+    text = text?.toString() || '';
+    let value = text.replace(/[^0-9.-]+/g, '');
+    if(parseFloat(value) != 0 && value[0] === "0") {
+        value = value.slice(1)
+    }
+    
+    let sep = value.split('.');
+    let integer = sep[0] || '';
+    let decimal = sep[1] || '';
+    try {
+        integer = eval(integer);
+    } catch (error) {
+        
+    }
+
+    if (decimal.length > 3) {
+        decimal = decimal.slice(0, 3);
+        value = (integer || '') + '.' + decimal;
+    }
+    return value;
+}
+
 export {
     cambiarThema,
     getFloatCurrency,
@@ -236,4 +259,5 @@ export {
     selectEnter,
     selectNull,
     sortList, 
+    justNumbers, 
 };

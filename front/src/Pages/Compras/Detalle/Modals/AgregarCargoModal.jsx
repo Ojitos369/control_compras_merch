@@ -2,7 +2,7 @@ import { useEffect } from "react";
 import { GeneralModal } from "../../../../Components/Modals/GeneralModal";
 import { useStates } from "../../../../Hooks/useStates";
 import { useVars } from "../myUse";
-import { showCurrency } from "../../../../Core/helper";
+import { showCurrency, justNumbers } from "../../../../Core/helper";
 import { TwiceLogo } from "../../../../Components/Loaders/TwiceLogo";
 
 const Component = props => {
@@ -12,6 +12,9 @@ const Component = props => {
 
     useEffect(() => {
         f.u2('compras', 'newCargo', 'data', {tipo: 'compra'});
+        const ele = document.getElementById('total_cargo');
+        ele.focus();
+        ele.select();
     }, []);
     return (
         <div className={`${styles.agregarCargoModal}`}>
@@ -29,9 +32,10 @@ const Component = props => {
                         </label>
                         <input 
                             className={`${styles.acInput}`}
-                            type="number"
+                            type="text"
                             value={total}
-                            onChange={e => updateNewCargo('total', e.target.value)}
+                            id="total_cargo"
+                            onChange={e => updateNewCargo('total', justNumbers(e.target.value))}
                         />
                     </div>
                 </div>
@@ -75,9 +79,9 @@ const Component = props => {
                                 </label>
                                 <input 
                                     className={`${styles.acInput}`}
-                                    type="number"
+                                    type="text"
                                     value={cantidad}
-                                    onChange={e => upgradePerUserCargo(usuario.compra_det_id, e.target.value)}
+                                    onChange={e => upgradePerUserCargo(usuario.compra_det_id, justNumbers(e.target.value))}
                                 />
                             </div>
                         </div>

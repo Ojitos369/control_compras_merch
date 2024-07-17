@@ -918,7 +918,7 @@ class GuardarPago(PostApi):
             return
 
         file_name = file.name
-        _, file_extension = file_name.split('.')
+        file_extension = file_name.split('.')[-1]
         file_name = f"{file_id}.{file_extension}"
         path_save = f'{STATIC_DIR}/compras/{self.compra_id}/comprobantes'
         if not os.path.exists(path_save):

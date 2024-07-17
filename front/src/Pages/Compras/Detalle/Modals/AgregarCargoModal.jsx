@@ -11,7 +11,7 @@ const Component = props => {
     const { total=0, fecha_limite='', tipo='', perUser={} } = newCargo;
 
     useEffect(() => {
-        f.u2('compras', 'newCargo', 'data', null);
+        f.u2('compras', 'newCargo', 'data', {tipo: 'compra'});
     }, []);
     return (
         <div className={`${styles.agregarCargoModal}`}>

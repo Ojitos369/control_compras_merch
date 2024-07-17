@@ -2,11 +2,12 @@
 import os
 import json
 import uuid
+import datetime
 
 from ojitos369.utils import print_json as pj
 # User
 from app.core.bases.apis import PostApi, GetApi, get_d, pln
-
+from app.core.bases.correos import GeneralTextMail
 from app.settings import STATIC_DIR, url_base
 
 class GuardarImagen(PostApi):
@@ -116,6 +117,7 @@ class GuardarCompra(PostApi):
         self.get_usuarios()
         self.guardar_compra()
         self.guardar_detalles()
+        self.enviar_correo()
 
     def get_usuarios(self):
         usuarios = [i["usuario"].lower() for i in self.data["items"]]
@@ -253,7 +255,47 @@ class GuardarCompra(PostApi):
                 self.conexion.rollback()
                 raise Exception("Error al guardar los usuarios de la compra")
             self.conexion.commit()
-            
+    
+    def enviar_correo(self):
+        query = """SELECT u.correo, u.usuario
+                FROM usuarios u
+                WHERE u.id_usuario IN :usuarios """
+        query_data = {
+            "usuarios": tuple(self.usuarios_ids.values()),
+        }
+        usuarios = self.conexion.consulta_asociativa(query, query_data)
+
+        query = """SELECT u.correo, u.usuario
+                FROM usuarios u
+                WHERE u.id_usuario = :id_usuario """
+        query_data = {
+            "id_usuario": self.user["id_usuario"],
+        }
+        r = self.conexion.consulta_asociativa(query, query_data)
+        creador = r[0]
+
+        nombre_compra = self.data["nombre_compra"]
+        descripcion_compra = self.data["descripcion_compra"]
+        creado_por = creador["usuario"]
+        fecha_limite = self.data["fecha_limite"]
+        origen = self.data["origen"]
+        link = self.data["link"]
+
+        usuarios = self.conexion.consulta_asociativa(query, query_data)
+        email_subject = "Nueva Compra"
+        email_text = f"Se te ha agregado a una nueva compra\n"
+        email_text += f"Nombre: {nombre_compra}\n"
+        email_text += f"Descripción: {descripcion_compra}\n"
+        email_text += f"Creado por: {creado_por}\n"
+        email_text += f"Fecha limite de pago: {fecha_limite}\n"
+        email_text += f"Origen: {origen}\n"
+        email_text += f"Link: {link}\n\n"
+        email_text += f"Puedes consultar los detalles aqui: {url_base}/#/compras/detalle/{self.id_compra}\n\n"
+
+        to_email = [i["correo"] for i in usuarios]
+
+        mail = GeneralTextMail(email_subject=email_subject, email_text=email_text, to_email=to_email)
+        mail.send()
 
 class GetCompra(GetApi):
     def main(self):
@@ -386,6 +428,7 @@ class GetCompra(GetApi):
             "id_compra": self.id_compra,
         }
         self.pagos_pendientes = self.conexion.consulta_asociativa(query, query_data)
+
 
 class GetMyCompras(GetApi):
     def main(self):
@@ -523,9 +566,84 @@ class GetMyCompras(GetApi):
                 "id_usuario": self.id_usuario,
             }
         else:
-            query = """SELECT *
+            query = """select c.*, 
+                        (select count(*) 
+                        from compras_det 
+                        where compra_id = c.id_compra
+                        and usuario_id = :id_usuario) as articulos,
+                        (select sum(cantidad)
+                        from compras_det 
+                        where compra_id = c.id_compra
+                        and usuario_id = :id_usuario) as cantidad_items,
+
+                        (select sum(total)
+                        from cargos
+                        where compra_id = c.id_compra
+                        and usuario_id = :id_usuario) as total_usuario,
+                        (select sum(total)
+                        from cargos
+                        where compra_id = c.id_compra
+                        and tipo = 'compra'
+                        and usuario_id = :id_usuario) as total_usuario_compra,
+                        (select sum(total)
+                        from cargos
+                        where compra_id = c.id_compra
+                        and tipo != 'compra'
+                        and usuario_id = :id_usuario) as total_usuario_cargos,
+
+                        (select sum(total)
+                        from cargos
+                        where compra_id = c.id_compra) as total_compra,
+                        (select sum(total)
+                        from cargos
+                        where compra_id = c.id_compra
+                        and tipo = 'compra') as total_compra_compra,
+                        (select sum(total)
+                        from cargos
+                        where compra_id = c.id_compra
+                        and tipo != 'compra') as total_compra_cargos,
+
+                        (select sum(cantidad)
+                        from pagos
+                        where compra_id = c.id_compra
+                        and validado = 1
+                        and usuario_id = :id_usuario) as total_abonado_usuario,
+                        (select sum(cantidad)
+                        from pagos
+                        where compra_id = c.id_compra
+                        and validado = 1
+                        and tipo = 'compra'
+                        and usuario_id = :id_usuario) as total_abonado_usuario_compra,
+                        (select sum(cantidad)
+                        from pagos
+                        where compra_id = c.id_compra
+                        and validado = 1
+                        and tipo != 'compra'
+                        and usuario_id = :id_usuario) as total_abonado_usuario_cargos,
+
+                        (select sum(cantidad)
+                        from pagos
+                        where compra_id = c.id_compra
+                        and validado = 1) as total_abonado,
+                        (select sum(cantidad)
+                        from pagos
+                        where compra_id = c.id_compra
+                        and validado = 1
+                        and tipo = 'compra') as total_abonado_compra,
+                        (select sum(cantidad)
+                        from pagos
+                        where compra_id = c.id_compra
+                        and validado = 1
+                        and tipo != 'compra') as total_abonado_cargos,
+
+                        (select min(fecha_limite)
+                        from cargos
+                        where compra_id = c.id_compra
+                        and usuario_id = :id_usuario) as fecha_limite
+                    from (SELECT *
                     FROM compras
-                    WHERE creado_por = :id_usuario """
+                    WHERE creado_por = :id_usuario) c
+                    ORDER BY c.fecha_compra DESC """
             query_data = {
                 "id_usuario": self.id_usuario,
             }
@@ -535,15 +653,18 @@ class GetMyCompras(GetApi):
         for c in self.compras:
             c["images"] = self.images.get(c["id_compra"], [])
 
+
 class GuardarCargo(PostApi):
     def main(self):
         self.show_me()
-        self.validarCreador()
+        self.usuarios = []
+        self.validar_creador()
         self.add_cargo()
+        self.enviar_correo()
     
-    def validarCreador(self):
-        compra_id = self.data["compra_id"]
-        query = """SELECT creado_por
+    def validar_creador(self):
+        self.compra_id = compra_id = self.data["compra_id"]
+        query = """SELECT creado_por, nombre_compra
                 FROM compras
                 WHERE id_compra = :compra_id """
         query_data = {
@@ -555,10 +676,12 @@ class GuardarCargo(PostApi):
         if (compra[0]["creado_por"] != self.user["id_usuario"]):
             raise self.MYE("No tienes permiso para realizar esta acción")
 
+        self.nombre_compra = compra[0]["nombre_compra"]
+
     def add_cargo(self):
         total = self.data.get("total", 0)
-        fecha_limite = self.data.get("fecha_limite", None)
-        tipo = self.data["tipo"]
+        self.fecha_limite = fecha_limite = self.data.get("fecha_limite", None)
+        self.tipo_cargo = tipo = self.data["tipo"]
         compra_id = self.data["compra_id"]
         perUser = get_d(self.data, "perUser", default={})
         query = """INSERT INTO cargos
@@ -575,12 +698,17 @@ class GuardarCargo(PostApi):
         for user in self.data["usuarios"]:
             id_cargo = str(uuid.uuid4())
             compra_det_id = user["compra_det_id"]
-            if (compra_det_id in perUser and not perUser[compra_det_id]) or (compra_det_id not in perUser and not total):
+            in_peruser = compra_det_id in perUser and (not perUser[compra_det_id] or float(perUser[compra_det_id]) < 0.5)
+            in_total = not total and compra_det_id not in perUser
+            
+            if in_peruser or in_total:
                 continue
+            
             query_data["id_cargo"] = id_cargo
             query_data["usuario_id"] = user["id_usuario"]
             query_data["compra_det_id"] = compra_det_id
-            
+            self.usuarios.append(user["id_usuario"])
+
             if compra_det_id in perUser:
                 query_data["total"] = float(perUser[compra_det_id])
             else:
@@ -632,36 +760,38 @@ class GuardarCargo(PostApi):
             raise Exception("Error al guardar el kardex")
         self.conexion.commit()
 
-    def example_data(self):
-        data = {
-            "compra_id": "1b745759-3db4-4c3b-9a8c-bbd9812b8e01",
-            "usuarios": [
-                {
-                    "usuario": "test",
-                    "porcentaje": 4.86,
-                    "id_usuario": "cf25556b-dda2-4117-8126-f160ac7ac1ad",
-                    "descripcion": "art1"
-                },
-                {
-                    "usuario": "test2",
-                    "porcentaje": 8.77,
-                    "id_usuario": "72aeeed5-e301-4843-b579-4db9ea3a44b7",
-                    "descripcion": "art2"
-                },
-                {
-                    "usuario": "ojitos369",
-                    "porcentaje": 86.37,
-                    "id_usuario": "e66a184d-8d5e-4a70-917c-45767bbaacfb",
-                    "descripcion": "art3"
-                }
-            ],
-            "total": "149.83",
-            "perUser": {
-                "e66a184d-8d5e-4a70-917c-45767bbaacfb": "101.7"
-            },
-            "tipo": "ems",
-            "fecha_limite": "2024-07-31"
+    def enviar_correo(self):
+        query = """SELECT u.correo, u.usuario
+                FROM usuarios u
+                WHERE u.id_usuario IN :usuarios """
+        query_data = {
+            "usuarios": tuple(self.usuarios),
         }
+        usuarios = self.conexion.consulta_asociativa(query, query_data)
+
+        query = """SELECT u.correo, u.usuario
+                FROM usuarios u
+                WHERE u.id_usuario = :id_usuario """
+        query_data = {
+            "id_usuario": self.user["id_usuario"],
+        }
+        r = self.conexion.consulta_asociativa(query, query_data)
+        creador = r[0]
+
+        # self.compra_id, self.nombre_compra, self.fecha_limite, self.tipo_cargo
+
+        usuarios = self.conexion.consulta_asociativa(query, query_data)
+        email_subject = f"Nuevo Cargo a la compra {self.nombre_compra}"
+        email_text = f"Se ha agregado un nuevo cargo para la compra {self.nombre_compra}\n"
+        email_text += f"Tipo de cargo: {self.tipo_cargo}\n"
+        email_text += f"Fecha Limite de pago: {self.fecha_limite}\n"
+        email_text += f"Cargo agregado por: {creador['usuario']}\n\n"
+        email_text += f"Puedes consultar los detalles aqui: {url_base}/#/compras/detalle/{self.compra_id}\n\n"
+
+        to_email = [i["correo"] for i in usuarios]
+
+        mail = GeneralTextMail(email_subject=email_subject, email_text=email_text, to_email=to_email)
+        mail.send()
 
 
 class GuardarPago(PostApi):
@@ -669,12 +799,14 @@ class GuardarPago(PostApi):
         self.show_me()
         self.reparse_data()
         self.compra_id = self.data["compra_id"]
+        self.usuarios = []
         self.guardar_comprobante()
-        self.validarCreador()
+        self.validar_creador()
         self.add_pago()
+        self.enviar_correo()
     
-    def validarCreador(self):
-        query = """SELECT creado_por
+    def validar_creador(self):
+        query = """SELECT creado_por, nombre_compra
                 FROM compras
                 WHERE id_compra = :compra_id """
         query_data = {
@@ -684,16 +816,19 @@ class GuardarPago(PostApi):
         if not compra:
             raise self.MYE("No se encontró la compra")
         self.validado = (compra[0]["creado_por"] == self.user["id_usuario"])
+        self.nombre_compra = compra[0]["nombre_compra"]
+        self.creador_compra = compra[0]["creado_por"]
 
     def add_pago(self):
         total = self.data.get("total", 0)
-        tipo = self.data["tipo"]
+        self.tipo_cargo = tipo = self.data["tipo"]
         perUser = get_d(self.data, "perUser", default={})
+        fvalidado = "null" if not self.validado else "now()"
         query = """INSERT INTO pagos
-                (id_pago, cantidad, tipo, compra_det_id, compra_id, usuario_id, validado, comprobante)
+                (id_pago, cantidad, tipo, compra_det_id, compra_id, usuario_id, validado, comprobante, fecha_validado)
                 VALUES
-                (:id_pago, :cantidad, :tipo, :compra_det_id, :compra_id, :usuario_id, :validado, :comprobante)
-            """
+                (:id_pago, :cantidad, :tipo, :compra_det_id, :compra_id, :usuario_id, :validado, :comprobante, {})
+            """.format(fvalidado)
             
         query_data = {
             "compra_id": self.compra_id,
@@ -705,9 +840,10 @@ class GuardarPago(PostApi):
         for user in self.data["usuarios"]:
             id_pago = str(uuid.uuid4())
             compra_det_id = user["compra_det_id"]
-            if (compra_det_id in perUser and not perUser[compra_det_id]) or (compra_det_id not in perUser and not total):
-                continue
-            if float(perUser[compra_det_id]) < 0.5:
+
+            in_peruser = compra_det_id in perUser and (not perUser[compra_det_id] or float(perUser[compra_det_id]) < 0.5)
+            in_total = not total and compra_det_id not in perUser
+            if in_peruser or in_total:
                 continue
             
             query_data["id_pago"] = id_pago
@@ -727,6 +863,7 @@ class GuardarPago(PostApi):
 
             if self.validado:
                 self.add_kardex(user["id_usuario"], query_data["cantidad"], id_pago, tipo)
+                self.usuarios.append(user["id_usuario"])
 
     def add_kardex(self, usuario_id, cantidad, tipo_id, tipo_pago):
         id_kardex = str(uuid.uuid4())
@@ -792,47 +929,83 @@ class GuardarPago(PostApi):
                 destination.write(chunk)
         self.comprobante = file_name
 
-    def example_data(self):
-        data = {
-            "compra_id": "1b745759-3db4-4c3b-9a8c-bbd9812b8e01",
-            "usuarios": [
-                {
-                    "usuario": "test",
-                    "porcentaje": 4.86,
-                    "id_usuario": "cf25556b-dda2-4117-8126-f160ac7ac1ad",
-                    "descripcion": "art1"
-                },
-                {
-                    "usuario": "test2",
-                    "porcentaje": 8.77,
-                    "id_usuario": "72aeeed5-e301-4843-b579-4db9ea3a44b7",
-                    "descripcion": "art2"
-                },
-                {
-                    "usuario": "ojitos369",
-                    "porcentaje": 86.37,
-                    "id_usuario": "e66a184d-8d5e-4a70-917c-45767bbaacfb",
-                    "descripcion": "art3"
-                }
-            ],
-            "total": "149.83",
-            "perUser": {
-                "e66a184d-8d5e-4a70-917c-45767bbaacfb": "101.7"
-            },
-            "tipo": "ems",
-            "fecha_limite": "2024-07-31"
-        }
+    def enviar_correo(self):
+        if self.validado:
+            query = """SELECT u.correo, u.usuario
+                    FROM usuarios u
+                    WHERE u.id_usuario IN :usuarios """
+            query_data = {
+                "usuarios": tuple(self.usuarios),
+            }
+            usuarios = self.conexion.consulta_asociativa(query, query_data)
 
+            query = """SELECT u.correo, u.usuario
+                    FROM usuarios u
+                    WHERE u.id_usuario = :id_usuario """
+            query_data = {
+                "id_usuario": self.user["id_usuario"],
+            }
+            r = self.conexion.consulta_asociativa(query, query_data)
+            creador = r[0]
+
+            usuarios = self.conexion.consulta_asociativa(query, query_data)
+            email_subject = f"Nuevo Pago a la compra {self.nombre_compra}"
+            email_text = f"Se ha agregado un nuevo cargo para la compra {self.nombre_compra}\n"
+            email_text += f"Tipo de pago: {self.tipo_cargo}\n"
+            email_text += f"Pago agregado por: {creador['usuario']}\n\n"
+            email_text += f"Puedes consultar los detalles aqui: {url_base}/#/compras/detalle/{self.compra_id}\n\n"
+
+            to_email = [i["correo"] for i in usuarios]
+
+            mail = GeneralTextMail(email_subject=email_subject, email_text=email_text, to_email=to_email)
+            mail.send()
+        else:
+            query = """SELECT u.correo, u.usuario
+                    FROM usuarios u
+                    WHERE u.id_usuario = :usuario """
+            query_data = {
+                "usuario": self.creador_compra,
+            }
+            creador = self.conexion.consulta_asociativa(query, query_data)[0]
+
+            query = """SELECT u.correo, u.usuario
+                    FROM usuarios u
+                    WHERE u.id_usuario = :id_usuario """
+            query_data = {
+                "id_usuario": self.user["id_usuario"],
+            }
+            solicitante = self.conexion.consulta_asociativa(query, query_data)[0]
+            
+            email_subject = f"Nuevo Pago para validar en {self.nombre_compra}"
+            email_text = f"Se ha mandado un pago en {self.nombre_compra} para que lo valides\n"
+            email_text += f"Tipo de pago: {self.tipo_cargo}\n"
+            email_text += f"Pago enviado por: {solicitante['usuario']}\n\n"
+            email_text += f"Puedes validar el pago aqui: {url_base}/#/compras/detalle/{self.compra_id}\n\n"
+            to_email = [creador["correo"]]
+
+            mail = GeneralTextMail(email_subject=email_subject, email_text=email_text, to_email=to_email)
+            mail.send()
+            
+            email_subject = f"Pago enviado para validar en {self.nombre_compra}"
+            email_text = f"Se ha mandado tu pago para {self.nombre_compra} queda en espera de validacion\n"
+            email_text += f"Tipo de pago: {self.tipo_cargo}\n"
+            email_text += f"Puedes seguir el status del pago aqui: {url_base}/#/compras/detalle/{self.compra_id}\n\n"
+            to_email = [solicitante["correo"]]
+
+            mail = GeneralTextMail(email_subject=email_subject, email_text=email_text, to_email=to_email)
+            mail.send()
+            
 
 class ValidarPago(PostApi):
     def main(self):
         self.show_me()
         self.compra_id = self.data["compra_id"]
-        self.validarCreador()
+        self.validar_creador()
         self.validar_pago()
+        self.enviar_correo()
     
-    def validarCreador(self):
-        query = """SELECT creado_por
+    def validar_creador(self):
+        query = """SELECT creado_por, nombre_compra
                 FROM compras
                 WHERE id_compra = :compra_id """
         query_data = {
@@ -843,20 +1016,77 @@ class ValidarPago(PostApi):
             raise self.MYE("No se encontró la compra")
         if (compra[0]["creado_por"] != self.user["id_usuario"]):
             raise self.MYE("No tienes permiso para realizar esta acción")
+        self.nombre_compra = compra[0]["nombre_compra"]
 
     def validar_pago(self):
         id_pago = self.data["id_pago"]
         query = """UPDATE pagos
-                SET validado = 1
+                SET validado = 1,
+                    fecha_validado = :fecha_validado
                 WHERE id_pago = :id_pago """
         query_data = {
             "id_pago": id_pago,
+            "fecha_validado": datetime.datetime.now(),
         }
         if not(self.conexion.ejecutar(query, query_data)):
             self.conexion.rollback()
             raise Exception("Error al validar el pago")
         self.conexion.commit()
+        
+        self.add_kardex(self.data["usuario_id"], self.data["cantidad"], self.data["id_pago"], self.data["tipo"])
 
+    def add_kardex(self, usuario_id, cantidad, tipo_id, tipo_pago):
+        id_kardex = str(uuid.uuid4())
+        tipo = "pago"
+        comentario = f"Pago por {tipo_pago}"
+
+        query = """ INSERT INTO kardex
+                (id_kardex, usuario_id, cantidad, tipo, tipo_id, comentario, movimiento)
+                VALUES
+                (%s, %s, %s, %s, %s, %s, 'S')
+            """
+        query_data = (
+            str(id_kardex),
+            str(usuario_id),
+            float(cantidad),
+            str(tipo),
+            str(tipo_id),
+            str(comentario),
+        )
+        if not(self.conexion.ejecutar(query, query_data)):
+            self.conexion.rollback()
+            raise Exception("Error al guardar el kardex")
+        self.conexion.commit()
+
+    def enviar_correo(self):
+        query = """SELECT u.correo, u.usuario
+                FROM usuarios u
+                WHERE u.id_usuario = :usuario """
+        query_data = {
+            "usuario": self.data["usuario_id"],
+        }
+        usuarios = self.conexion.consulta_asociativa(query, query_data)
+
+        query = """SELECT u.correo, u.usuario
+                FROM usuarios u
+                WHERE u.id_usuario = :id_usuario """
+        query_data = {
+            "id_usuario": self.user["id_usuario"],
+        }
+        r = self.conexion.consulta_asociativa(query, query_data)
+        creador = r[0]
+
+        usuarios = self.conexion.consulta_asociativa(query, query_data)
+        email_subject = f"Pago Validado para {self.nombre_compra}"
+        email_text = f"Se ha validado tu pago para la compra {self.nombre_compra}\n"
+        email_text += f"Tipo de pago: {self.data["tipo"]}\n"
+        email_text += f"Pago Validado por: {creador['usuario']}\n\n"
+        email_text += f"Puedes consultar los detalles aqui: {url_base}/#/compras/detalle/{self.compra_id}\n\n"
+
+        to_email = [i["correo"] for i in usuarios]
+
+        mail = GeneralTextMail(email_subject=email_subject, email_text=email_text, to_email=to_email)
+        mail.send()
 
 """ 
 Yemen

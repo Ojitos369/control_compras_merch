@@ -159,10 +159,10 @@ const Loading = () => {
 }
 
 const RevisarPagosModal = props => {
-    const { guardandoPago } = useVars();
+    const { s } = useStates();
     return (
         <GeneralModal
-            Component={!guardandoPago ? Component : Loading}
+            Component={!s.loadings?.compras?.validarPago ? Component : Loading}
             lvl1="compras"
             lvl2="revisarPagos"
             cw={"90"}

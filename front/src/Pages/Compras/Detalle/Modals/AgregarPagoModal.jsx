@@ -11,7 +11,7 @@ const Component = props => {
     const { total=0, tipo='', perUser={} } = newPago;
 
     useEffect(() => {
-        f.u2('compras', 'newPago', 'data', null);
+        f.u2('compras', 'newPago', 'data', {tipo: 'compra'});
     }, []);
     return (
         <div className={`${styles.agregarPagoModal}`}>

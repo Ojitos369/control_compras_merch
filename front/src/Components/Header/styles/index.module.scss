@@ -6,4 +6,19 @@
             height: auto;
         }
     }
+    .usuario {
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        gap: 10px;
+        margin-left: auto;
+        margin-right: 20px;
+        color: var(--tw);
+        font-size: 1.2rem;
+        font-weight: 600;
+        svg {
+            width: 30px;
+            height: auto;
+        }
+    }
 }

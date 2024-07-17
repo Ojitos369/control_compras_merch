@@ -73,6 +73,14 @@ const Pagos = props => {
                                 <th className='text-start table-header' scope="col">
                                     <button className='w-full m-0 bg-[#788] px-3 py-1 rounded-lg whitespace-nowrap'
                                         onClick={() => {
+                                            order('fecha_validado');
+                                        }}>
+                                        Fecha Validado {validarOrdenTable('fecha_validado')}
+                                    </button>
+                                </th>
+                                <th className='text-start table-header' scope="col">
+                                    <button className='w-full m-0 bg-[#788] px-3 py-1 rounded-lg whitespace-nowrap'
+                                        onClick={() => {
                                             order('cantidad');
                                         }}>
                                         Cantidad {validarOrdenTable('cantidad')}
@@ -111,7 +119,7 @@ const Pagos = props => {
 const ShowElement = props => {
     const { ele, index, styles, compra_id, imgLink } = props;
     const par = index % 2 === 0;
-    const { cantidad, tipo, fecha_pago, usuario, validado, comprobante } = ele;
+    const { cantidad, tipo, fecha_pago, fecha_validado, usuario, validado, comprobante } = ele;
     const link = comprobante ? `${imgLink}/${compra_id}/comprobantes/${comprobante}` : '';
     return (
         <tr className={`${styles[par ? 'par' : 'impar']}`}>
@@ -128,7 +136,10 @@ const ShowElement = props => {
                 { showDate(fecha_pago) }
             </td>
             <td>
-                { showCurrency(cantidad) }
+                { fecha_validado ? showDate(fecha_validado) : '-'}
+            </td>
+            <td>
+                { showCurrency(cantidad)}
             </td>
             <td>
                 { comprobante ? 

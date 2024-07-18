@@ -18,6 +18,7 @@ BASE_DIR = Path(__file__).resolve().parent.parent
 prod_mode = True if str(os.environ.get('RUN_PROD_MODE', True)).title() == 'True' else False
 MEDIA_DIR = os.path.join(BASE_DIR, 'media')
 url_base = "https://ccm.ojitos369.com" if prod_mode else "http://localhost:8369"
+# url_base = "https://ccm.ojitos369.com"
 
 # Quick-start development settings - unsuitable for production
 # See https://docs.djangoproject.com/en/4.1/howto/deployment/checklist/

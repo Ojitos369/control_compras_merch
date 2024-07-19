@@ -148,12 +148,6 @@ const useVars = props => {
         input.click();
     }
 
-    const deleteActualImage = e => {
-        if (!!e) e.preventDefault();
-        // actualImage.id_image
-        f.compras.eliminarImagen(actualImage.id_image, setActualImage);
-    }
-
     return { 
         guardando, valid, fields, 
         generalFields, upgradeGeneralData, 
@@ -161,7 +155,7 @@ const useVars = props => {
         images, actualImage, 
         keyExec, validaMK, 
         save, addNew, upgradeData, removeItem, 
-        setActualImage, cambiarImage, clickInput, deleteActualImage, 
+        setActualImage, cambiarImage, clickInput, 
         total, 
     }
 }

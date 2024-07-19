@@ -1088,6 +1088,37 @@ class ValidarPago(PostApi):
         mail = GeneralTextMail(email_subject=email_subject, email_text=email_text, to_email=to_email)
         mail.send()
 
+
+class EliminarImagen(PostApi):
+    def main(self):
+        id_image = self.data["id_image"]
+        query = """SELECT compra_id, filename
+                    from imagenes
+                    where id_imagen = :id_imagen """
+        query_data = {
+            "id_imagen": id_image,
+        }
+        r = self.conexion.consulta_asociativa(query, query_data)
+        image = r[0]
+        compra_id = image["compra_id"]
+        filename = image["filename"]
+        
+        file_path = f"{STATIC_DIR}/compras/{compra_id}/preview/{filename}"
+        
+        os.remove(file_path)
+        
+        query = """DELETE FROM imagenes
+                    WHERE id_imagen = :id_imagen """
+        
+        if not self.conexion.ejecutar(query, query_data):
+            self.conexion.rollback()
+            raise Exception("Error al eliminar la imagen")
+        self.conexion.commit()
+        
+        self.response = {
+            "message": "Archivo eliminado correctamente"
+        }
+
 """ 
 Yemen
 967 773 755 514
@@ -1095,4 +1126,5 @@ vs
 SV
 need funa
 """
+
 

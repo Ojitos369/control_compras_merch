@@ -1,0 +1,132 @@
+@import "../../../../static/css/response.scss";
+// sm, md, lg, xl, xxl
+.nueva_compra_container {
+    .images {
+        display: flex;
+        justify-content: center;
+        align-items: center;
+        .images_show {
+            width: 50vw;
+            height: 50vw;
+            background: #0000;
+            border-radius: 15px;
+            overflow: hidden;
+            @include md {
+                width: 30vw;
+                height: 30vw;
+            }
+            .images_show_img {
+                width: 100%;
+                height: 100%;
+                object-fit: cover;
+            }
+            .images_show_dif {
+                // position: relative;
+                width: 100%;
+                height: 100%;
+                object-fit: cover;
+                background: #0009;
+                border-radius: 15px;
+                display: flex;
+                justify-content: center;
+                align-items: center;
+            }
+        }
+        .images_change {
+            background-color: var(--mn);
+            text-align: center;
+            padding: 5px;
+            margin-top: 8px;
+            border-radius: 8px;
+            color: black;
+            cursor: pointer;
+            &:hover {
+                background-color: var(--jy);
+            }
+        }
+    }
+    .items {
+        .addButton {
+            background: var(--mn);
+            padding: 3px 14px;
+            border-radius: 8px;
+            width: 120px;
+            margin-left: 50px;
+            color: black;
+            &:hover {
+                background: var(--jy);
+            }
+        }
+        .item_container {
+            padding: 5px 20px;
+            width: 80vw;
+            height: 70vw;
+            display: flex;
+            flex-direction: row;
+            flex-wrap: wrap;
+            justify-content: space-around;
+            @include sm {
+                width: 50vw;
+                height: 40vw;
+            }
+            @include md {
+                width: 40vw;
+                height: 30vw;
+            }
+            @include lg {
+                width: 30vw;
+                height: 20vw;
+            }
+            .item_form {
+                position: relative;
+                width: 100%;
+                height: 100%;
+                border-radius: 15px;
+                border: 1px solid var(--my-minor);
+                overflow: scroll;
+            }
+            .item_remove {
+                position: relative;
+                top: 30px;
+                right: -45%;
+                z-index: 10;
+                svg {
+                    width: 30px;
+                    height: 30px;
+                    cursor: pointer;
+                    &:hover {
+                        fill: var(--my-minor);
+                    }
+                }
+            }
+        }
+    }
+    .resumen {
+        display: flex;
+        flex-wrap: wrap;
+        justify-content: space-around;
+        align-items: center;
+        width: 80vw;
+        margin-bottom: 50px;
+        p, div {
+            width: 30%;
+        }
+        .button {
+            width: 80%;
+            padding: 4px 10px;
+            border-radius: 8px;
+            &.guardar {
+                background: var(--mn);
+                cursor: pointer;
+                color: #000;
+                &:hover {
+                    background: var(--jy);
+                }
+            }
+            &.guardar_disabled {
+                border: 1px solid #888;
+                cursor: not-allowed;
+            }
+        }
+    }
+}

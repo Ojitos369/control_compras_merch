@@ -388,6 +388,26 @@ const useF = props => {
             }).finally(() => {
                 u2('loadings', 'compras', 'validarPago', false);
             });
+        },
+        eliminarImagen: (id_image, setActualImage) => {
+            if (s.loadings?.compras?.eliminarImagen) return;
+            u2('loadings', 'compras', 'eliminarImagen', true);
+            const url = 'compras/eliminar_imagen/';
+
+            miAxios.post(url, {id_image})
+            .then(response => {
+                const message = response.data.message;
+                const images = s.compras?.actualCompra?.form?.images || [];
+                const newImages = images.filter(image => image.id_image != id_image);
+                u3('compras', 'actualCompra', 'form', 'images', newImages);
+                if (setActualImage) {
+                    setActualImage(newImages?.[0] || null);
+                }
+            }).catch(error => {
+                const message = error.response.data.message;
+            }).finally(() => {
+                u2('loadings', 'compras', 'eliminarImagen', false);
+            });
         }
     }
 

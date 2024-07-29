@@ -59,6 +59,14 @@ const Articulos = props => {
                                 <th className='text-start table-header' scope="col">
                                     <button className='w-full m-0 bg-[#788] px-3 py-1 rounded-lg whitespace-nowrap'
                                         onClick={() => {
+                                            order('total');
+                                        }}>
+                                        Porcentaje {validarOrdenTable('porcentaje')}
+                                    </button>
+                                </th>
+                                <th className='text-start table-header' scope="col">
+                                    <button className='w-full m-0 bg-[#788] px-3 py-1 rounded-lg whitespace-nowrap'
+                                        onClick={() => {
                                             order('total_abonado');
                                         }}>
                                         Abonado {validarOrdenTable('total_abonado')}
@@ -95,7 +103,7 @@ const Articulos = props => {
 const ShowElement = props => {
     const { ele, index, styles } = props;
     const par = index % 2 === 0;
-    const { cantidad, descripcion, precio, total, total_abonado, usuario, restante } = ele;
+    const { cantidad, descripcion, precio, total, total_abonado, usuario, restante, porcentaje } = ele;
     return (
         <tr className={`${styles[par ? 'par' : 'impar']}`}>
             <td>
@@ -112,6 +120,9 @@ const ShowElement = props => {
             </td>
             <td>
                 { showCurrency(total) }
+            </td>
+            <td>
+                { porcentaje } %
             </td>
             <td>
                 { showCurrency(total_abonado) }

@@ -27,7 +27,7 @@ const Register = props => {
             required: true, errorMessage: !!data.passwd ? (data.passwd === data.confirmPasswd ? '' : 'Las contraseñas no coinciden') : ''
         },
         { key: 'correo', label: 'Correo', type: 'email', value: data.correo, 
-            required: true, errorMessage: !data.correo && 'Este Campo es requerido'
+            // required: true, errorMessage: !data.correo && 'Este Campo es requerido'
         },
         { key: 'telefono', label: 'Teléfono', type: 'tel', value: data.telefono },
         { key: 'fecha_nacimiento', label: 'Fecha de Nacimiento', type: 'date', value: data.fecha_nacimiento },

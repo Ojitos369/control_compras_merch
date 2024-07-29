@@ -117,7 +117,10 @@ class GuardarCompra(PostApi):
         self.get_usuarios()
         self.guardar_compra()
         self.guardar_detalles()
-        self.enviar_correo()
+        try:
+            self.enviar_correo()
+        except:
+            pass
 
     def get_usuarios(self):
         usuarios = [i["usuario"].lower() for i in self.data["items"]]
@@ -368,7 +371,10 @@ class GetCompra(GetApi):
         self.imagenes = self.conexion.consulta_asociativa(query, query_data)
 
     def get_compras_det(self):
-        query = """SELECt t.*, (t.total - t.total_abonado) restante
+        query = """SELECt t.*, (t.total - t.total_abonado) restante, 
+                        (select porcentaje 
+                            from compras_usuarios
+                            where compra_det_id = t.id_compra_det) porcentaje
                 FROM (SELECT cd.*, 
                         u.usuario,
                         (select nvl(sum(cantidad), 0)
@@ -660,7 +666,10 @@ class GuardarCargo(PostApi):
         self.usuarios = []
         self.validar_creador()
         self.add_cargo()
-        self.enviar_correo()
+        try:
+            self.enviar_correo()
+        except:
+            pass
     
     def validar_creador(self):
         self.compra_id = compra_id = self.data["compra_id"]
@@ -803,7 +812,10 @@ class GuardarPago(PostApi):
         self.guardar_comprobante()
         self.validar_creador()
         self.add_pago()
-        self.enviar_correo()
+        try:
+            self.enviar_correo()
+        except:
+            pass
     
     def validar_creador(self):
         query = """SELECT creado_por, nombre_compra
@@ -1002,7 +1014,10 @@ class ValidarPago(PostApi):
         self.compra_id = self.data["compra_id"]
         self.validar_creador()
         self.validar_pago()
-        self.enviar_correo()
+        try:
+            self.enviar_correo()
+        except:
+            pass
     
     def validar_creador(self):
         query = """SELECT creado_por, nombre_compra

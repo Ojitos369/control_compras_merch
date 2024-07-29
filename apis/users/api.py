@@ -86,6 +86,7 @@ class Login(NoSession, PostApi):
 class Register(NoSession, PostApi):
     def main(self):
         self.show_me()
+        default = "laigeflaiehfla"
         # print(self.data)
         nombre = get_d(self.data, "nombre", default=None)
         paterno = get_d(self.data, "paterno", default=None)
@@ -93,7 +94,8 @@ class Register(NoSession, PostApi):
         usuario = get_d(self.data, "user", default=None)
         usuario = usuario.replace(' ', '')
         passwd = get_d(self.data, "passwd", default=None)
-        correo = get_d(self.data, "correo", default=None)
+        # correo = get_d(self.data, "correo", default=None)
+        correo = get_d(self.data, "correo", default=default)
         telefono = get_d(self.data, "telefono", default=None)
         fecha_nacimiento = get_d(self.data, "fecha_nacimiento", default=None)
 
@@ -109,12 +111,15 @@ class Register(NoSession, PostApi):
         r = self.conexion.consulta_asociativa(query, query_data)
         if r:
             raise self.MYE("Usuario ya registrado")
+        
+        if correo == default:
+            correo = None
 
         id_usuario = str(uuid.uuid4())
         fecha_nacimiento
         nombre = nombre
-        validado = False
-        activo = False
+        validado = True
+        activo = True
 
         user_data = {
             "nombre": nombre,
@@ -127,10 +132,11 @@ class Register(NoSession, PostApi):
             "fecha_nacimiento": fecha_nacimiento,
         }
         campos = "id_usuario, fecha_creado, fecha_editado, validado, activo, "
-        values = ":id_usuario, now(), now(), :validado, true, "
+        values = ":id_usuario, now(), now(), :validado, :activo, "
         query_data = {
             "id_usuario": id_usuario,
-            "validado": False,
+            "validado": validado,
+            "activo": activo,
         }
 
         for campo, valor in user_data.items():

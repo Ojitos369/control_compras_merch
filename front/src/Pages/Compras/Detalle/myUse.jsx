@@ -1,12 +1,13 @@
 import { useEffect, useMemo } from "react";
 import { useStates } from "../../../Hooks/useStates";
-import { useParams } from "react-router-dom";
+import { useParams, useNavigate } from "react-router-dom";
 import { sortList } from "../../../Core/helper";
 import styles from './styles/index.module.scss'
 
 const useVars = props => {
     const { s, f } = useStates();
     const { compra_id } = useParams();
+    const navigate = useNavigate();
 
     const { compra={}, usuarios=[], imagenes=[], articulos=[], cargos:cargosGenerales=[], pagos:pagosGenerales=[], pagos_pendientes=[] } = useMemo(() => s.compras?.consulta?.compraData || {}, [s.compras?.consulta?.compraData]);
 
@@ -206,6 +207,13 @@ const useVars = props => {
         f.u2('tables', 'orden', 'order', order);
     }
 
+    const editarCompra = e => {
+        if (!!e) e.preventDefault();
+        if (!creadorCompra) return;
+        // console.log('Editar compra');
+        // f.u2('modals', 'compras', 'editarCompra', true);
+    }
+
     const validaMK = e => {
         let thisKeys = f.cloneO(keys);
         const actual = e.key.toLowerCase();
@@ -213,8 +221,9 @@ const useVars = props => {
         const vals = Object.keys(thisKeys);
 
         if (vals.length != 2) return;
-        else if (!!thisKeys.alt && !!thisKeys.p) agregarPago(e);
         else if (!!thisKeys.alt && !!thisKeys.c) agregarCargo(e);
+        else if (!!thisKeys.alt && !!thisKeys.e) editarCompra(e);
+        else if (!!thisKeys.alt && !!thisKeys.p) agregarPago(e);
         else if (!!thisKeys.alt && !!thisKeys.v) revisarPagos(e);
     }
 
@@ -242,6 +251,7 @@ const useVars = props => {
         validaMK, keyExec, closeModals, 
         ordenar, validarOrdenTable: f.general.tables.validarOrden, 
         revisarPagos, validarPago, 
+        editarCompra, 
     }
 }
 

@@ -44,7 +44,7 @@ const Detalle = props => {
 const ListenKeys = props => {
     const { keyExec, validaMK } = useVars();
     // ---------------------------------------------   KEYBOARD EVENTS   --------------------------------------------- #
-    useKeyDown(validaMK, ['alt', 'p', 'c', 'v'], keyExec);
+    useKeyDown(validaMK, ['alt', 'c', 'e', 'p', 'v'], keyExec);
 
     useKeyUp(null, ['any'], keyExec);
     // ---------------------------------------------   /KEYBOARD EVENTS   --------------------------------------------- #

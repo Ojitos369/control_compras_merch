@@ -1,8 +1,10 @@
 import { useEffect, useMemo } from "react";
 import { useStates } from "../../../Hooks/useStates";
+import { useParams } from "react-router-dom";
 
 const useVars = props => {
-    const { s, f } = useStates(); 
+    const { s, f } = useStates();
+    const { compra_id } = useParams();
 
     // ---------------------------------------------   FUNCTIONS   --------------------------------------------- #
     const guardando = useMemo(() => s.loadings?.compras?.guardarCompra, [s.loadings?.compras?.guardarCompra]);
@@ -149,6 +151,7 @@ const useVars = props => {
     }
 
     return { 
+        compra_id, 
         guardando, valid, fields, 
         generalFields, upgradeGeneralData, 
         items, totalItems, 
@@ -164,6 +167,7 @@ const useVars = props => {
 const useMyEffects = props => {
     const { f } = useStates();
     const { 
+        compra_id, 
         images, actualImage, cambiarImage, setActualImage, items
     } = useVars();
 
@@ -190,7 +194,7 @@ const useMyEffects = props => {
             setActualImage(null);
         }
 
-    }, [images]);
+    }, [compra_id, images]);
 
     useEffect(() => {
         const total = items.reduce((acc, item) => {
@@ -199,6 +203,10 @@ const useMyEffects = props => {
         f.u3('compras', 'actualCompra', 'form', 'total', total);
 
     }, [items]);
+
+    useEffect(()  => {
+        f.compras.getCompra(compra_id);
+    }, [compra_id]);
 }
 
 

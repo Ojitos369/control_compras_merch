@@ -5,7 +5,7 @@ import {
     Base, 
     Index, 
     Test, 
-    ComprasPage, ComprasNueva, ComprasDetalle, 
+    ComprasPage, ComprasNueva, ComprasDetalle, ComprasEditar, 
     Users, UsersLogin, UsersRegister, UsersValidarCuenta, UsersAccount, 
     store, Provider, useStates, 
     GeneralNotification, 
@@ -91,6 +91,7 @@ const Logged = props => {
                 <Route path="compras" element={ <ComprasPage /> } >
                     <Route path="nueva" element={ <ComprasNueva /> } />
                     <Route path="detalle/:compra_id" element={ <ComprasDetalle /> } />
+                    <Route path="editar/:compra_id" element={ <ComprasEditar /> } />
                     {/* <Route path="validar_cuenta/:validacion" element={ <UsersValidarCuenta /> } /> */}
                 </Route>
                 {/* -----------   /Compras   ----------- */}

@@ -408,6 +408,42 @@ const useF = props => {
             }).finally(() => {
                 u2('loadings', 'compras', 'eliminarImagen', false);
             });
+        },
+        eliminarCompra: compra_id => {
+            MySwal.fire({
+                title: 'Eliminar compra',
+                text: '¿Estas seguro de eliminar esta compra?',
+                icon: 'warning',
+                showCancelButton: true,
+                confirmButtonText: 'Si, eliminar',
+                cancelButtonText: 'Cancelar',
+            }).then(result => {
+                if (result.isConfirmed) {
+                    if (s.loadings?.compras?.eliminarCompra) return;
+                    u2('loadings', 'compras', 'eliminarCompra', true);
+                    const end = 'compras/eliminar_compra/';
+
+                    miAxios.post(end, {compra_id})
+                    .then(response => {
+                        const message = response.data.message;
+                        general.notificacion({
+                            mode: 'success',
+                            title: 'Eliminado con exito',
+                            message: message || "Eliminado con exito"
+                        });
+                        navigate('/');
+                    }).catch(error => {
+                        const message = error.response.data.message;
+                        general.notificacion({
+                            mode: 'danger',
+                            title: 'Error al eliminar',
+                            message: message || "Error al eliminar"
+                        });
+                    }).finally(() => {
+                        u2('loadings', 'compras', 'eliminarCompra', false);
+                    });
+                }
+            });
         }
     }
 

@@ -295,10 +295,13 @@ class GuardarCompra(PostApi):
         email_text += f"Link: {link}\n\n"
         email_text += f"Puedes consultar los detalles aqui: {url_base}/#/compras/detalle/{self.id_compra}\n\n"
 
-        to_email = [i["correo"] for i in usuarios]
+        to_email = [i["correo"] for i in usuarios if i["correo"]]
+        if not to_email:
+            return
 
         mail = GeneralTextMail(email_subject=email_subject, email_text=email_text, to_email=to_email)
         mail.send()
+
 
 class GetCompra(GetApi):
     def main(self):
@@ -453,7 +456,10 @@ class GetMyCompras(GetApi):
     def get_detalles(self):
         query = """SELECT *
                 FROM compras_det
-                WHERE usuario_id = :id_usuario """
+                WHERE usuario_id = :id_usuario
+                AND not oculto
+                AND status_articulo != 'entregado'
+                """
         query_data = {
             "id_usuario": self.id_usuario,
         }
@@ -464,15 +470,29 @@ class GetMyCompras(GetApi):
     
     def get_images(self):
         self.images = {}
+        ids = self.compras_ids
         if not self.compras_ids:
-            return
+            query = """SELECT id_compra
+                    FROM compras
+                    WHERE creado_por = :id_usuario
+                    AND not oculto
+                    AND nvl(status_compra, 'pendiente') != 'entregado' """
+            query_data = {
+                "id_usuario": self.id_usuario,
+            }
+            r = self.conexion.consulta_asociativa(query, query_data)
+            if r:
+                ids = [i["id_compra"] for i in r]
+            else:
+                return
+
         query = """SELECT img.*
                 FROM imagenes img
                 WHERE img.compra_id in :compras
                 order by img.fecha_alta asc
                 """
         query_data = {
-            "compras": tuple(self.compras_ids),
+            "compras": tuple(ids),
         }
         
         images = self.conexion.consulta_asociativa(query, query_data)
@@ -563,7 +583,9 @@ class GetMyCompras(GetApi):
                     UNION
                     SELECT *
                     FROM compras
-                    WHERE creado_por = :id_usuario) c
+                    WHERE creado_por = :id_usuario
+                    AND not oculto
+                    AND nvl(status_compra, 'pendiente') != 'entregado') c
                     
                     ORDER BY c.fecha_compra DESC
                 """
@@ -648,7 +670,9 @@ class GetMyCompras(GetApi):
                         and usuario_id = :id_usuario) as fecha_limite
                     from (SELECT *
                     FROM compras
-                    WHERE creado_por = :id_usuario) c
+                    WHERE creado_por = :id_usuario
+                    AND not oculto
+                    AND nvl(status_compra, 'pendiente') != 'entregado') c
                     ORDER BY c.fecha_compra DESC """
             query_data = {
                 "id_usuario": self.id_usuario,
@@ -797,7 +821,9 @@ class GuardarCargo(PostApi):
         email_text += f"Cargo agregado por: {creador['usuario']}\n\n"
         email_text += f"Puedes consultar los detalles aqui: {url_base}/#/compras/detalle/{self.compra_id}\n\n"
 
-        to_email = [i["correo"] for i in usuarios]
+        to_email = [i["correo"] for i in usuarios if i["correo"]]
+        if not to_email:
+            return
 
         mail = GeneralTextMail(email_subject=email_subject, email_text=email_text, to_email=to_email)
         mail.send()
@@ -967,7 +993,9 @@ class GuardarPago(PostApi):
             email_text += f"Pago agregado por: {creador['usuario']}\n\n"
             email_text += f"Puedes consultar los detalles aqui: {url_base}/#/compras/detalle/{self.compra_id}\n\n"
 
-            to_email = [i["correo"] for i in usuarios]
+            to_email = [i["correo"] for i in usuarios if i["correo"]]
+            if not to_email:
+                return
 
             mail = GeneralTextMail(email_subject=email_subject, email_text=email_text, to_email=to_email)
             mail.send()
@@ -1098,7 +1126,9 @@ class ValidarPago(PostApi):
         email_text += f"Pago Validado por: {creador['usuario']}\n\n"
         email_text += f"Puedes consultar los detalles aqui: {url_base}/#/compras/detalle/{self.compra_id}\n\n"
 
-        to_email = [i["correo"] for i in usuarios]
+        to_email = [i["correo"] for i in usuarios if i["correo"]]
+        if not to_email:
+            return
 
         mail = GeneralTextMail(email_subject=email_subject, email_text=email_text, to_email=to_email)
         mail.send()
@@ -1134,6 +1164,91 @@ class EliminarImagen(PostApi):
             "message": "Archivo eliminado correctamente"
         }
 
+
+class EliminarCompra(PostApi):
+    def main(self):
+        self.compra_id = self.data["compra_id"]
+        self.validar_creador()
+        self.get_usuarios()
+        self.marcar_oculto()
+        self.enviar_correo()
+    
+    def validar_creador(self):
+        query = """SELECT creado_por, nombre_compra
+                FROM compras
+                WHERE id_compra = :compra_id """
+        query_data = {
+            "compra_id": self.compra_id,
+        }
+        compra = self.conexion.consulta_asociativa(query, query_data)
+        if not compra:
+            raise self.MYE("No se encontró la compra")
+        if (compra[0]["creado_por"] != self.user["id_usuario"]):
+            raise self.MYE("No tienes permiso para realizar esta acción")
+        self.nombre_compra = compra[0]["nombre_compra"]
+
+    def get_usuarios(self):
+        query = """SELECT usuario_id
+                    FROM compras_det
+                    WHERE compra_id = :compra_id """
+        query_data = {
+            "compra_id": self.compra_id,
+        }
+        r = self.conexion.consulta_asociativa(query, query_data)
+        self.usuarios = [i["usuario_id"] for i in r]
+        
+    def marcar_oculto(self):
+        query = """UPDATE compras
+                SET oculto = 1,
+                    status_compra = 'cancelado'
+                WHERE id_compra = :compra_id """
+        query_data = {
+            "compra_id": self.compra_id,
+        }
+        if not self.conexion.ejecutar(query, query_data):
+            self.conexion.rollback()
+            raise Exception("Error al eliminar la compra")
+        self.conexion.commit()
+        
+        query = """UPDATE compras_det
+                    set oculto = 1,
+                        status_articulo = 'cancelado'
+                    WHERE compra_id = :compra_id """
+        if not self.conexion.ejecutar(query, query_data):
+            self.conexion.rollback()
+            raise Exception("Error al eliminar la compra")
+        self.conexion.commit()
+
+    def enviar_correo(self):
+        query = """SELECT u.correo, u.usuario
+                FROM usuarios u
+                WHERE u.id_usuario IN :usuarios """
+                
+        query_data = {
+            "usuarios": tuple(self.usuarios),
+        }
+        usuarios = self.conexion.consulta_asociativa(query, query_data)
+        
+        query = """SELECT u.correo, u.usuario
+                FROM usuarios u
+                WHERE u.id_usuario = :id_usuario """
+        query_data = {
+            "id_usuario": self.user["id_usuario"],
+        }
+        r = self.conexion.consulta_asociativa(query, query_data)
+        creador = r[0]
+        
+        email_subject = f"Compra Cancelada"
+        email_text = f"Se ha cancelado la compra {self.nombre_compra}\n"
+        email_text += f"Compra cancelada por: {creador['usuario']}\n\n"
+        
+        to_email = [i["correo"] for i in usuarios if i["correo"]]
+        if not to_email:
+            return
+        
+        mail = GeneralTextMail(email_subject=email_subject, email_text=email_text, to_email=to_email)
+        mail.send()
+
 """ 
 Yemen
 967 773 755 514
@@ -1141,5 +1256,4 @@ vs
 SV
 need funa
 """
-
 

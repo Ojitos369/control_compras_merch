@@ -210,8 +210,13 @@ const useVars = props => {
     const editarCompra = e => {
         if (!!e) e.preventDefault();
         if (!creadorCompra) return;
-        // console.log('Editar compra');
-        // f.u2('modals', 'compras', 'editarCompra', true);
+        navigate(`/compras/editar/${compra_id}`);
+    }
+
+    const eliminarCompra = e => {
+        if (!!e) e.preventDefault();
+        if (!creadorCompra) return;
+        f.compras.eliminarCompra(compra_id);
     }
 
     const validaMK = e => {
@@ -222,6 +227,7 @@ const useVars = props => {
 
         if (vals.length != 2) return;
         else if (!!thisKeys.alt && !!thisKeys.c) agregarCargo(e);
+        else if (!!thisKeys.alt && !!thisKeys.d) eliminarCompra(e);
         else if (!!thisKeys.alt && !!thisKeys.e) editarCompra(e);
         else if (!!thisKeys.alt && !!thisKeys.p) agregarPago(e);
         else if (!!thisKeys.alt && !!thisKeys.v) revisarPagos(e);
@@ -251,7 +257,7 @@ const useVars = props => {
         validaMK, keyExec, closeModals, 
         ordenar, validarOrdenTable: f.general.tables.validarOrden, 
         revisarPagos, validarPago, 
-        editarCompra, 
+        editarCompra, eliminarCompra, 
     }
 }
 

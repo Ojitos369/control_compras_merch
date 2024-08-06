@@ -30,7 +30,7 @@ venv
 *yarn-debug.log*
 *yarn-error.log*
 *yarn-error.log*
-
+*.session.sql
 
 front/*.lock*
 front/*lock.*

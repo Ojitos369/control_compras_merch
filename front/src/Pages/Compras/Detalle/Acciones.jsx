@@ -1,8 +1,8 @@
 import { useVars } from "./myUse";
-import { Piggy, CardPayment, MoneyMouthFace, CheckList, Edit } from "../../../Components/Icons";
+import { Piggy, CardPayment, MoneyMouthFace, CheckList, Edit, RemoveCart } from "../../../Components/Icons";
 import { Link } from "react-router-dom";
 const Acciones = props => {
-    const { styles, agregarPago, agregarCargo, revisarPagos, editarCompra, compra_id, creadorCompra } = useVars();
+    const { styles, agregarPago, agregarCargo, revisarPagos, eliminarCompra, compra_id, creadorCompra } = useVars();
     return (
         <div className={`${styles.accionesContainer}`}>
             {creadorCompra && 
@@ -49,6 +49,16 @@ const Acciones = props => {
                     to={`/compras/editar/${compra_id}`} >
                     <Edit />
                 </Link>
+            </div>}
+            {creadorCompra && 
+            <div className={`${styles.actionDiv}`}>
+                <button 
+                    data-tooltip-id="global" data-tooltip-content="Eliminar Compra Alt+D"
+                    className={`${styles.actionIcon}`} 
+                    onClick={eliminarCompra}
+                    >
+                    <RemoveCart />
+                </button>
             </div>}
         </div>
     )

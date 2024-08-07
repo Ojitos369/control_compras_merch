@@ -114,6 +114,7 @@ class GuardarCompra(PostApi):
     def main(self):
         self.show_me()
         self.id_compra = self.data["id"]
+        self.validar_existente()
         self.get_usuarios()
         self.guardar_compra()
         self.guardar_detalles()
@@ -122,6 +123,16 @@ class GuardarCompra(PostApi):
         except:
             pass
 
+    def validar_existente(self):
+        query = """SELECT id_compra
+                    FROM compras
+                    WHERE id_compra = :id_compra """
+        query_data = {
+            "id_compra": self.id_compra,
+        }
+        r =  self.conexion.consulta_asociativa(query, query_data)
+        self.existe_compra = bool(r)
+                    
     def get_usuarios(self):
         usuarios = [i["usuario"].lower() for i in self.data["items"]]
         usuarios = list(set(usuarios))
@@ -132,30 +143,76 @@ class GuardarCompra(PostApi):
         }
         usuarios = self.conexion.consulta_asociativa(query, query_data)
         self.usuarios_ids = {i["usuario"].lower(): i["id_usuario"] for i in usuarios}
+        self.usuarios_anteriores = {}
         self.totales_usuario = {usuario: 0 for usuario in self.usuarios_ids.values()}
+        
+        if self.existe_compra:
+            query = """SELECT cd.usuario_id, u.usuario
+                        FROM compras_det cd, usuarios u
+                        WHERE cd.compra_id = :id_compra
+                        AND cd.usuario_id = u.id_usuario
+                        AND cd.usuario_id not in :usuarios
+                        GROUP BY cd.usuario_id, u.usuario
+                        """
+            query_data = {
+                "id_compra": self.id_compra,
+                "usuarios": tuple(self.usuarios_ids.values()),
+            }
+            r = self.conexion.consulta_asociativa(query, query_data)
+            self.usuarios_anteriores = {i["usuario"]: i["usuario_id"] for i in r}
 
     def guardar_compra(self):
-        query = """INSERT INTO compras
-                (id_compra, total, origen, link, status_compra, pagado, nombre_compra, descripcion_compra, creado_por)
-                VALUES
-                (:id_compra, :total, :origen, :link, :status_compra, :pagado, :nombre_compra, :descripcion_compra, :creado_por) """
+        if not self.existe_compra:
+            query = """INSERT INTO compras
+                    (id_compra, total, origen, link, status_compra, pagado, nombre_compra, descripcion_compra, creado_por)
+                    VALUES
+                    (:id_compra, :total, :origen, :link, :status_compra, :pagado, :nombre_compra, :descripcion_compra, :creado_por) """
 
-        query_data = {
-            "id_compra": self.id_compra,
-            "total": self.data["total"],
-            "origen": self.data["origen"],
-            "link": self.data["link"],
-            "status_compra": "pendiente",
-            "pagado": False,
-            "nombre_compra": self.data["nombre_compra"],
-            "descripcion_compra": self.data["descripcion_compra"],
-            "creado_por": self.user["id_usuario"],
-        }
-        if not(self.conexion.ejecutar(query, query_data)):
-            self.conexion.rollback()
-            raise Exception("Error al guardar la compra")
-        self.conexion.commit()
-        
+            query_data = {
+                "id_compra": self.id_compra,
+                "total": self.data["total"],
+                "origen": self.data["origen"],
+                "link": self.data["link"],
+                "status_compra": "pendiente",
+                "pagado": False,
+                "nombre_compra": self.data["nombre_compra"],
+                "descripcion_compra": self.data["descripcion_compra"],
+                "creado_por": self.user["id_usuario"],
+            }
+            if not(self.conexion.ejecutar(query, query_data)):
+                self.conexion.rollback()
+                raise Exception("Error al guardar la compra")
+            self.conexion.commit()
+        else:
+            # total, origen, link, status_compra, pagado, nombre_compra, descripcion_compra, creado_por
+            query = """UPDATE compras
+                    set total = :total,
+                        origen = :origen,
+                        link = :link,
+                        status_compra = :status_compra,
+                        pagado = :pagado,
+                        nombre_compra = :nombre_compra,
+                        descripcion_compra = :descripcion_compra,
+                        creado_por = :creado_por
+                    WHERE id_compra = :id_compra
+                    """
+
+            query_data = {
+                "id_compra": self.id_compra,
+                "total": self.data["total"],
+                "origen": self.data["origen"],
+                "link": self.data["link"],
+                "status_compra": "pendiente",
+                "pagado": False,
+                "nombre_compra": self.data["nombre_compra"],
+                "descripcion_compra": self.data["descripcion_compra"],
+                "creado_por": self.user["id_usuario"],
+            }
+            if not(self.conexion.ejecutar(query, query_data)):
+                self.conexion.rollback()
+                raise Exception("Error al guardar la compra")
+            self.conexion.commit()
+
         query = """UPDATE imagenes
                 SET estatus = 'guardada'
                 WHERE compra_id = :id_compra """
@@ -168,7 +225,6 @@ class GuardarCompra(PostApi):
         self.conexion.commit()
 
     def guardar_detalles(self):
-        # id_compra_det, compra_id, usuario_id, descripcion, precio, cantidad, total
         query = """INSERT INTO compras_det
                 (id_compra_det, compra_id, usuario_id, descripcion, precio, cantidad, total)
                 VALUES
@@ -177,8 +233,7 @@ class GuardarCompra(PostApi):
         query_2 = """INSERT INTO cargos
                 (id_cargo, usuario_id, compra_det_id, compra_id, total, fecha_limite, pagado, status_cargo, tipo)
                 VALUES
-                (:id_cargo, :usuario_id, :compra_det_id, :compra_id, :total, :fecha_limite, false, 'pendiente', 'compra')
-        """
+                (:id_cargo, :usuario_id, :compra_det_id, :compra_id, :total, :fecha_limite, false, 'pendiente', 'compra') """
         
         query_3 = """INSERT INTO kardex
                 (id_kardex, usuario_id, cantidad, tipo, tipo_id, comentario, movimiento)
@@ -189,82 +244,288 @@ class GuardarCompra(PostApi):
                 (id_compra_usuario, usuario_id, compra_id, compra_det_id, total_correspondiente, porcentaje)
                 VALUES
                 (:id_compra_usuario, :usuario_id, :compra_id, :compra_det_id, :total_correspondiente, :porcentaje) """
+        if not self.existe_compra:
+            # id_compra_det, compra_id, usuario_id, descripcion, precio, cantidad, total
 
-        for item in self.data["items"]:
-            user = item["usuario"].lower()
-            usuario_id = self.usuarios_ids[user] if user in self.usuarios_ids else self.user["id_usuario"]
-            total_precio = round(float(item["precio"]) * float(item["cantidad"]), 2)
-            id_compra_det = str(uuid.uuid4())
+            for item in self.data["items"]:
+                user = item["usuario"].lower()
+                usuario_id = self.usuarios_ids[user] if user in self.usuarios_ids else self.user["id_usuario"]
+                total_precio = round(float(item["precio"]) * float(item["cantidad"]), 2)
+                id_compra_det = str(uuid.uuid4())
 
-            query_data = {
-                "id_compra_det": id_compra_det,
-                "compra_id": self.id_compra,
-                "usuario_id": usuario_id,
-                "descripcion": item["descripcion_compra"],
-                "precio": item["precio"],
-                "cantidad": item["cantidad"],
-                "total": total_precio,
+                query_data = {
+                    "id_compra_det": id_compra_det,
+                    "compra_id": self.id_compra,
+                    "usuario_id": usuario_id,
+                    "descripcion": item["descripcion_compra"],
+                    "precio": item["precio"],
+                    "cantidad": item["cantidad"],
+                    "total": total_precio,
+                }
+                if usuario_id not in self.totales_usuario:
+                    self.totales_usuario[usuario_id] = 0
+                self.totales_usuario[usuario_id] += round(float(item["precio"]) * float(item["cantidad"]), 2)
+
+                if not(self.conexion.ejecutar(query, query_data)):
+                    self.conexion.rollback()
+                    raise Exception("Error al guardar los detalles de la compra")
+
+                id_cargo = str(uuid.uuid4())
+                # id_cargo, usuario_id, compra_det_id, total, fecha_limite
+                query_data = {
+                    "id_cargo": id_cargo,
+                    "usuario_id": usuario_id,
+                    "compra_det_id": id_compra_det,
+                    "compra_id": self.id_compra,
+                    "total": total_precio,
+                    "fecha_limite": self.data["fecha_limite"],
+                }
+                
+                if not(self.conexion.ejecutar(query_2, query_data)):
+                    self.conexion.rollback()
+                    raise Exception("Error al guardar los cargos de la compra")
+                self.conexion.commit()
+                
+                # id_kardex, usuario_id, cantidad, tipo_id
+                id_kardex = str(uuid.uuid4())
+                query_data = {
+                    "id_kardex": id_kardex,
+                    "usuario_id": usuario_id,
+                    "cantidad": total_precio,
+                    "tipo_id": id_cargo,
+                }
+                
+                if not(self.conexion.ejecutar(query_3, query_data)):
+                    self.conexion.rollback()
+                    raise Exception("Error al guardar el kardex de la compra")
+                self.conexion.commit()
+                
+                id_compra_usuario = str(uuid.uuid4())
+                porcentaje = round(total_precio / self.data["total"] * 100, 2)
+
+                query_data = {
+                    "id_compra_usuario": id_compra_usuario,
+                    "usuario_id": usuario_id,
+                    "compra_id": self.id_compra,
+                    "compra_det_id": id_compra_det,
+                    "total_correspondiente": total_precio,
+                    "porcentaje": porcentaje
+                }
+                if not(self.conexion.ejecutar(query_4, query_data)):
+                    self.conexion.rollback()
+                    raise Exception("Error al guardar los usuarios de la compra")
+                self.conexion.commit()
+
+        else:
+            qt = """SELECT *
+                        FROM compras_det
+                        WHERE compra_id = :id_compra
+                        """
+            qd = {
+                "id_compra": self.id_compra,
             }
-            if usuario_id not in self.totales_usuario:
-                self.totales_usuario[usuario_id] = 0
-            self.totales_usuario[usuario_id] += round(float(item["precio"]) * float(item["cantidad"]), 2)
+            r = self.conexion.consulta_asociativa(qt, qd)
+            compras_dets_ids = [r["id_compra_det"] for r in r]
+            info_anterior = {r["id_compra_det"]: r for r in r}
 
-            if not(self.conexion.ejecutar(query, query_data)):
-                self.conexion.rollback()
-                raise Exception("Error al guardar los detalles de la compra")
+            for item in self.data["items"]:
+                user = item["usuario"].lower()
+                usuario_id = self.usuarios_ids[user] if user in self.usuarios_ids else self.user["id_usuario"]
+                total_precio = round(float(item["precio"]) * float(item["cantidad"]), 2)
+                id_compra_det = get_d(item, "id_compra_det", default=str(uuid.uuid4()))
+                
+                if id_compra_det not in compras_dets_ids:
+                    query_data = {
+                        "id_compra_det": id_compra_det,
+                        "compra_id": self.id_compra,
+                        "usuario_id": usuario_id,
+                        "descripcion": item["descripcion_compra"],
+                        "precio": item["precio"],
+                        "cantidad": item["cantidad"],
+                        "total": total_precio,
+                    }
+                    if usuario_id not in self.totales_usuario:
+                        self.totales_usuario[usuario_id] = 0
+                    self.totales_usuario[usuario_id] += round(float(item["precio"]) * float(item["cantidad"]), 2)
 
-            id_cargo = str(uuid.uuid4())
-            # id_cargo, usuario_id, compra_det_id, total, fecha_limite
-            query_data = {
-                "id_cargo": id_cargo,
-                "usuario_id": usuario_id,
-                "compra_det_id": id_compra_det,
-                "compra_id": self.id_compra,
-                "total": total_precio,
+                    if not(self.conexion.ejecutar(query, query_data)):
+                        self.conexion.rollback()
+                        raise Exception("Error al guardar los detalles de la compra")
+
+                    id_cargo = str(uuid.uuid4())
+                    # id_cargo, usuario_id, compra_det_id, total, fecha_limite
+                    query_data = {
+                        "id_cargo": id_cargo,
+                        "usuario_id": usuario_id,
+                        "compra_det_id": id_compra_det,
+                        "compra_id": self.id_compra,
+                        "total": total_precio,
+                        "fecha_limite": self.data["fecha_limite"],
+                    }
+                    
+                    if not(self.conexion.ejecutar(query_2, query_data)):
+                        self.conexion.rollback()
+                        raise Exception("Error al guardar los cargos de la compra")
+                    self.conexion.commit()
+                    
+                    # id_kardex, usuario_id, cantidad, tipo_id
+                    id_kardex = str(uuid.uuid4())
+                    query_data = {
+                        "id_kardex": id_kardex,
+                        "usuario_id": usuario_id,
+                        "cantidad": total_precio,
+                        "tipo_id": id_cargo,
+                    }
+                    
+                    if not(self.conexion.ejecutar(query_3, query_data)):
+                        self.conexion.rollback()
+                        raise Exception("Error al guardar el kardex de la compra")
+                    self.conexion.commit()
+                    
+                    id_compra_usuario = str(uuid.uuid4())
+                    porcentaje = round(total_precio / self.data["total"] * 100, 2)
+
+                    query_data = {
+                        "id_compra_usuario": id_compra_usuario,
+                        "usuario_id": usuario_id,
+                        "compra_id": self.id_compra,
+                        "compra_det_id": id_compra_det,
+                        "total_correspondiente": total_precio,
+                        "porcentaje": porcentaje
+                    }
+                    if not(self.conexion.ejecutar(query_4, query_data)):
+                        self.conexion.rollback()
+                        raise Exception("Error al guardar los usuarios de la compra")
+                    self.conexion.commit()
+                else:
+                    compras_dets_ids.remove(id_compra_det)
+                    info = info_anterior[id_compra_det]
+                    
+                    same_user = info["usuario_id"] == usuario_id
+                    same_precio = info["precio"] == item["precio"]
+                    same_cantidad = info["cantidad"] == item["cantidad"]
+                    if same_user and same_precio and same_cantidad:
+                        same_desc = info["descripcion"] == item["descripcion_compra"]
+                        if same_desc:
+                            continue
+                        else:
+                            qt = """UPDATE compras_det
+                                        set descripcion = :descripcion
+                                        WHERE id_compra_det = :id_compra_det
+                                """
+                            qd = {
+                                "descripcion": item["descripcion_compra"],
+                                "id_compra_det": id_compra_det,
+                            }
+                            if not(self.conexion.ejecutar(qt, qd)):
+                                self.conexion.rollback()
+                                raise Exception("Error al actualizar la descripcion de la compra")
+                            self.conexion.commit()
+                    else:
+                        # compras_det, cargos, kardex, compras_usuarios
+                        qt = """UPDATE compras_det
+                                SET usuario_id = :usuario_id,
+                                    descripcion = :descripcion,
+                                    precio = :precio,
+                                    cantidad = :cantidad,
+                                    total = :total
+                                WHERE id_compra_det = :id_compra_det
+                                """
+                        qd = {
+                            "usuario_id": usuario_id,
+                            "descripcion": item["descripcion_compra"],
+                            "precio": item["precio"],
+                            "cantidad": item["cantidad"],
+                            "total": total_precio,
+                            "id_compra_det": id_compra_det,
+                        }
+                        if not(self.conexion.ejecutar(qt, qd)):
+                            self.conexion.rollback()
+                            raise Exception("Error al actualizar la compra")
+                        self.conexion.commit()
+                        
+                        qt = """UPDATE cargos
+                                SET usuario_id = :usuario_id,
+                                    total = :total
+                                WHERE compra_det_id = :id_compra_det
+                                """
+                        qd = {
+                            "usuario_id": usuario_id,
+                            "total": total_precio,
+                            "id_compra_det": id_compra_det,
+                        }
+                        if not(self.conexion.ejecutar(qt, qd)):
+                            self.conexion.rollback()
+                            raise Exception("Error al actualizar los cargos")
+                        self.conexion.commit()
+                        
+                        qt = """UPDATE kardex
+                                SET usuario_id = :usuario_id,
+                                    cantidad = :cantidad
+                                WHERE tipo_id = :id_compra_det
+                                """
+                        qd = {
+                            "usuario_id": usuario_id,
+                            "cantidad": total_precio,
+                            "id_compra_det": id_compra_det,
+                        }
+                        if not(self.conexion.ejecutar(qt, qd)):
+                            self.conexion.rollback()
+                            raise Exception("Error al actualizar el kardex")
+                        self.conexion.commit()
+                        
+                        porcentaje = round(total_precio / self.data["total"] * 100, 2)
+                        qt = """UPDATE compras_usuarios
+                                SET usuario_id = :usuario_id,
+                                    total_correspondiente = :total_correspondiente,
+                                    porcentaje = :porcentaje
+                                WHERE compra_det_id = :id_compra_det
+                                """
+                        qd = {
+                            "usuario_id": usuario_id,
+                            "total_correspondiente": total_precio,
+                            "porcentaje": porcentaje,
+                            "id_compra_det": id_compra_det,
+                        }
+                        if not(self.conexion.ejecutar(qt, qd)):
+                            self.conexion.rollback()
+                            raise Exception("Error al actualizar los usuarios")
+                        self.conexion.commit()
+            
+            qt = """UPDATE cargos
+                    SET fecha_limite = :fecha_limite
+                    WHERE compra_id = :id_compra
+                    AND tipo = 'compra'
+                    """
+            qd = {
                 "fecha_limite": self.data["fecha_limite"],
+                "id_compra": self.id_compra,
             }
-            
-            if not(self.conexion.ejecutar(query_2, query_data)):
+            if not (self.conexion.ejecutar(qt, qd)):
                 self.conexion.rollback()
-                raise Exception("Error al guardar los cargos de la compra")
+                raise Exception("Error al actualizar la fecha limite")
             self.conexion.commit()
-            
-            # id_kardex, usuario_id, cantidad, tipo_id
-            id_kardex = str(uuid.uuid4())
-            query_data = {
-                "id_kardex": id_kardex,
-                "usuario_id": usuario_id,
-                "cantidad": total_precio,
-                "tipo_id": id_cargo,
-            }
-            
-            if not(self.conexion.ejecutar(query_3, query_data)):
-                self.conexion.rollback()
-                raise Exception("Error al guardar el kardex de la compra")
-            self.conexion.commit()
-            
-            id_compra_usuario = str(uuid.uuid4())
-            porcentaje = round(total_precio / self.data["total"] * 100, 2)
 
-            query_data = {
-                "id_compra_usuario": id_compra_usuario,
-                "usuario_id": usuario_id,
-                "compra_id": self.id_compra,
-                "compra_det_id": id_compra_det,
-                "total_correspondiente": total_precio,
-                "porcentaje": porcentaje
-            }
-            if not(self.conexion.ejecutar(query_4, query_data)):
-                self.conexion.rollback()
-                raise Exception("Error al guardar los usuarios de la compra")
-            self.conexion.commit()
-    
+            if compras_dets_ids:
+                qt = """UPDATE compras_det
+                            SET oculto = true,
+                                status_articulo = 'cancelado'
+                            WHERE id_compra_det in :compras_dets_ids
+                            """
+                qd = {
+                    "compras_dets_ids": tuple(compras_dets_ids),
+                }
+                if not self.conexion.ejecutar(qt, qd):
+                    self.conexion.rollback()
+                    raise Exception("Error al cancelar los articulos")
+                self.conexion.commit()
+
     def enviar_correo(self):
         query = """SELECT u.correo, u.usuario
                 FROM usuarios u
                 WHERE u.id_usuario IN :usuarios """
         query_data = {
-            "usuarios": tuple(self.usuarios_ids.values()),
+            "usuarios": tuple(self.usuarios_ids.values()) + tuple(self.usuarios_anteriores.values()),
         }
         usuarios = self.conexion.consulta_asociativa(query, query_data)
 
@@ -285,8 +546,8 @@ class GuardarCompra(PostApi):
         link = self.data["link"]
 
         usuarios = self.conexion.consulta_asociativa(query, query_data)
-        email_subject = "Nueva Compra"
-        email_text = f"Se te ha agregado a una nueva compra\n"
+        email_subject = "Nueva Compra" if not self.existe_compra else "Compra Actualizada"
+        email_text = f"Se te ha agregado a una nueva compra\n" if not self.existe_compra else f"Se ha actualizado una compra\n"
         email_text += f"Nombre: {nombre_compra}\n"
         email_text += f"Descripción: {descripcion_compra}\n"
         email_text += f"Creado por: {creado_por}\n"
@@ -308,6 +569,7 @@ class GetCompra(GetApi):
         self.show_me()
         self.id_compra = self.data["compra_id"]
         # compras, compras_usuarios, compras_det, cargos, pagos
+        self.queries_filteres()
         self.get_compra()
         self.get_imagenes()
         self.get_compras_det()
@@ -332,27 +594,27 @@ class GetCompra(GetApi):
     def get_compra(self):
         query = """SELECT c.*,
                 (select count(*) 
-                from compras_det 
+                from {0} cd 
                 where compra_id = c.id_compra) cantidad_articulos,
                 (select sum(cantidad)
-                from compras_det 
+                from {0} cd 
                 where compra_id = c.id_compra) cantidad_items,
                 (select sum(total)
-                from compras_det
+                from {0} cd
                 where compra_id = c.id_compra) total_deuda,
                 (select sum(cantidad)
-                from pagos
+                from {1} pg
                 where compra_id = c.id_compra
                 and validado = 1
                 and tipo='compra') total_abonado,
                 (select min(fecha_limite)
-                from cargos
+                from {2} cg
                 where compra_id = c.id_compra
                 and tipo='compra') fecha_limite
-                FROM compras c
+                FROM {3} c
                 WHERE c.id_compra = :id_compra
                 AND (c.creado_por = :id_usuario OR :id_usuario IN (SELECT usuario_id FROM compras_usuarios WHERE compra_id = :id_compra))
-                """
+                """.format(self.det_query, self.pago_query, self.cargo_query, self.compra_query)
         query_data = {
             "id_compra": self.id_compra,
             "id_usuario": self.user["id_usuario"],
@@ -381,14 +643,14 @@ class GetCompra(GetApi):
                 FROM (SELECT cd.*, 
                         u.usuario,
                         (select nvl(sum(cantidad), 0)
-                        from pagos
+                        from {0} pg
                         where compra_det_id = cd.id_compra_det
                         and tipo = 'compra'
                         and validado = 1
                         and usuario_id = cd.usuario_id) total_abonado
-                FROM compras_det cd, usuarios u
+                FROM {1} cd, usuarios u
                 WHERE compra_id = :id_compra AND cd.usuario_id = u.id_usuario) t
-                """
+                """.format(self.pago_query, self.det_query)
         query_data = {
             "id_compra": self.id_compra,
         }
@@ -397,9 +659,9 @@ class GetCompra(GetApi):
 
     def get_cargos(self):
         query = """SELECT c.*, (select usuario from usuarios where id_usuario = c.usuario_id) as usuario
-                FROM cargos c
+                FROM {0} c
                 WHERE compra_id = :id_compra
-                """
+                """.format(self.cargo_query)
         query_data = {
             "id_compra": self.id_compra,
         }
@@ -408,8 +670,8 @@ class GetCompra(GetApi):
 
     def get_pagos(self):
         query = """SELECT a.* , (select usuario from usuarios where id_usuario = a.usuario_id) as usuario
-                FROM pagos a
-                WHERE compra_id = :id_compra """
+                FROM {0} a
+                WHERE compra_id = :id_compra """.format(self.pago_query)
         query_data = {
             "id_compra": self.id_compra,
         }
@@ -418,11 +680,11 @@ class GetCompra(GetApi):
     
     def get_usuarios(self):
         query = """SELECT u.usuario, cu.porcentaje, u.id_usuario, cd.descripcion, cu.compra_det_id
-                FROM compras_usuarios cu, usuarios u, compras_det cd
+                FROM compras_usuarios cu, usuarios u, {0} cd
                 WHERE cu.compra_id = :id_compra
                 AND cu.usuario_id = u.id_usuario
                 AND cd.id_compra_det = cu.compra_det_id
-                """
+                """.format(self.det_query)
         query_data = {
             "id_compra": self.id_compra,
         }
@@ -430,13 +692,35 @@ class GetCompra(GetApi):
 
     def get_pagos_pendientes(self):
         query = """SELECT a.* , (select usuario from usuarios where id_usuario = a.usuario_id) as usuario,
-                (select descripcion from compras_det where id_compra_det = a.compra_det_id) as descripcion
-                FROM pagos a
-                WHERE compra_id = :id_compra AND validado = 0 """
+                (select descripcion from {0} cd where id_compra_det = a.compra_det_id) as descripcion
+                FROM {1} a
+                WHERE compra_id = :id_compra AND validado = 0 """.format(self.det_query, self.pago_query)
         query_data = {
             "id_compra": self.id_compra,
         }
         self.pagos_pendientes = self.conexion.consulta_asociativa(query, query_data)
+
+    def queries_filteres(self):
+        self.compra_query = """(SELECT *
+                                FROM compras
+                                WHERE not oculto
+                                AND nvl(status_compra, 'pendiente') not in ('entregado', 'cancelado')) """
+        self.det_query = """(SELECT *
+                            FROM compras_det
+                            WHERE not oculto
+                            AND nvl(status_articulo, 'pendiente') not in ('entregado', 'cancelado')) """
+        self.cargo_query = """(SELECT cr.*
+                            FROM cargos cr,
+                                compras_det cd
+                            WHERE cr.compra_det_id = cd.id_compra_det
+                            AND not cd.oculto
+                            AND nvl(cd.status_articulo, 'pendiente') not in ('entregado', 'cancelado')) """
+        self.pago_query = """(SELECT pg.*
+                            FROM pagos pg,
+                                compras_det cd
+                            WHERE pg.compra_det_id = cd.id_compra_det
+                            AND not cd.oculto
+                            AND nvl(cd.status_articulo, 'pendiente') not in ('entregado', 'cancelado')) """
 
 
 class GetMyCompras(GetApi):
@@ -445,6 +729,7 @@ class GetMyCompras(GetApi):
         self.compras = []
         self.compras_ids = []
         self.id_usuario = self.user["id_usuario"]
+        self.queries_filteres()
         self.get_detalles()
         self.get_images()
         self.get_compras()
@@ -452,14 +737,33 @@ class GetMyCompras(GetApi):
         self.response = {
             "compras": self.compras
         }
-    
+
+    def queries_filteres(self):
+        self.compra_query = """(SELECT *
+                                FROM compras
+                                WHERE not oculto
+                                AND nvl(status_compra, 'pendiente') not in ('entregado', 'cancelado')) """
+        self.det_query = """(SELECT *
+                            FROM compras_det
+                            WHERE not oculto
+                            AND nvl(status_articulo, 'pendiente') not in ('entregado', 'cancelado')) """
+        self.cargo_query = """(SELECT cr.*
+                            FROM cargos cr,
+                                compras_det cd
+                            WHERE cr.compra_det_id = cd.id_compra_det
+                            AND not cd.oculto
+                            AND nvl(cd.status_articulo, 'pendiente') not in ('entregado', 'cancelado')) """
+        self.pago_query = """(SELECT pg.*
+                            FROM pagos pg,
+                                compras_det cd
+                            WHERE pg.compra_det_id = cd.id_compra_det
+                            AND not cd.oculto
+                            AND nvl(cd.status_articulo, 'pendiente') not in ('entregado', 'cancelado')) """
+
     def get_detalles(self):
-        query = """SELECT *
-                FROM compras_det
-                WHERE usuario_id = :id_usuario
-                AND not oculto
-                AND status_articulo != 'entregado'
-                """
+        query = """SELECT cd.*
+                FROM {0} cd
+                WHERE usuario_id = :id_usuario """.format(self.det_query)
         query_data = {
             "id_usuario": self.id_usuario,
         }
@@ -472,11 +776,9 @@ class GetMyCompras(GetApi):
         self.images = {}
         ids = self.compras_ids
         if not self.compras_ids:
-            query = """SELECT id_compra
-                    FROM compras
-                    WHERE creado_por = :id_usuario
-                    AND not oculto
-                    AND nvl(status_compra, 'pendiente') != 'entregado' """
+            query = """SELECT c.id_compra
+                    FROM {0} c
+                    WHERE c.creado_por = :id_usuario """.format(self.compra_query)
             query_data = {
                 "id_usuario": self.id_usuario,
             }
@@ -505,90 +807,88 @@ class GetMyCompras(GetApi):
         if self.compras_ids:
             query = """select c.*, 
                         (select count(*) 
-                        from compras_det 
+                        from {0} cd 
                         where compra_id = c.id_compra
                         and usuario_id = :id_usuario) as articulos,
                         (select sum(cantidad)
-                        from compras_det 
+                        from {0} cd 
                         where compra_id = c.id_compra
                         and usuario_id = :id_usuario) as cantidad_items,
 
                         (select sum(total)
-                        from cargos
+                        from {1} cg
                         where compra_id = c.id_compra
                         and usuario_id = :id_usuario) as total_usuario,
                         (select sum(total)
-                        from cargos
+                        from {1} cg
                         where compra_id = c.id_compra
                         and tipo = 'compra'
                         and usuario_id = :id_usuario) as total_usuario_compra,
                         (select sum(total)
-                        from cargos
+                        from {1} cg
                         where compra_id = c.id_compra
                         and tipo != 'compra'
                         and usuario_id = :id_usuario) as total_usuario_cargos,
 
                         (select sum(total)
-                        from cargos
+                        from {1} cg
                         where compra_id = c.id_compra) as total_compra,
                         (select sum(total)
-                        from cargos
+                        from {1} cg
                         where compra_id = c.id_compra
                         and tipo = 'compra') as total_compra_compra,
                         (select sum(total)
-                        from cargos
+                        from {1} cg
                         where compra_id = c.id_compra
                         and tipo != 'compra') as total_compra_cargos,
 
                         (select sum(cantidad)
-                        from pagos
+                        from {2} pg
                         where compra_id = c.id_compra
                         and validado = 1
                         and usuario_id = :id_usuario) as total_abonado_usuario,
                         (select sum(cantidad)
-                        from pagos
+                        from {2} pg
                         where compra_id = c.id_compra
                         and validado = 1
                         and tipo = 'compra'
                         and usuario_id = :id_usuario) as total_abonado_usuario_compra,
                         (select sum(cantidad)
-                        from pagos
+                        from {2} pg
                         where compra_id = c.id_compra
                         and validado = 1
                         and tipo != 'compra'
                         and usuario_id = :id_usuario) as total_abonado_usuario_cargos,
 
                         (select sum(cantidad)
-                        from pagos
+                        from {2} pg
                         where compra_id = c.id_compra
                         and validado = 1) as total_abonado,
                         (select sum(cantidad)
-                        from pagos
+                        from {2} pg
                         where compra_id = c.id_compra
                         and validado = 1
                         and tipo = 'compra') as total_abonado_compra,
                         (select sum(cantidad)
-                        from pagos
+                        from {2} pg
                         where compra_id = c.id_compra
                         and validado = 1
                         and tipo != 'compra') as total_abonado_cargos,
 
                         (select min(fecha_limite)
-                        from cargos
+                        from {1} cg
                         where compra_id = c.id_compra
-                        and usuario_id = :id_usuario) as fecha_limite
-                    from (SELECT *
-                    FROM compras
+                        and tipo='compra') as fecha_limite
+                    from (SELECT c.*
+                    FROM {3} c
                     WHERE id_compra IN :compras_ids
                     UNION
-                    SELECT *
-                    FROM compras
-                    WHERE creado_por = :id_usuario
-                    AND not oculto
-                    AND nvl(status_compra, 'pendiente') != 'entregado') c
+                    SELECT c.*
+                    FROM {3} c
+                    WHERE creado_por = :id_usuario) c
                     
                     ORDER BY c.fecha_compra DESC
-                """
+                """.format(self.det_query, self.cargo_query, self.pago_query, self.compra_query)
             query_data = {
                 "compras_ids": tuple(self.compras_ids),
                 "id_usuario": self.id_usuario,
@@ -596,84 +896,84 @@ class GetMyCompras(GetApi):
         else:
             query = """select c.*, 
                         (select count(*) 
-                        from compras_det 
+                        from {0} cd 
                         where compra_id = c.id_compra
                         and usuario_id = :id_usuario) as articulos,
                         (select sum(cantidad)
-                        from compras_det 
+                        from {0} cd 
                         where compra_id = c.id_compra
                         and usuario_id = :id_usuario) as cantidad_items,
 
                         (select sum(total)
-                        from cargos
+                        from {1} cg
                         where compra_id = c.id_compra
                         and usuario_id = :id_usuario) as total_usuario,
                         (select sum(total)
-                        from cargos
+                        from {1} cg
                         where compra_id = c.id_compra
                         and tipo = 'compra'
                         and usuario_id = :id_usuario) as total_usuario_compra,
                         (select sum(total)
-                        from cargos
+                        from {1} cg
                         where compra_id = c.id_compra
                         and tipo != 'compra'
                         and usuario_id = :id_usuario) as total_usuario_cargos,
 
                         (select sum(total)
-                        from cargos
+                        from {1} cg
                         where compra_id = c.id_compra) as total_compra,
                         (select sum(total)
-                        from cargos
+                        from {1} cg
                         where compra_id = c.id_compra
                         and tipo = 'compra') as total_compra_compra,
                         (select sum(total)
-                        from cargos
+                        from {1} cg
                         where compra_id = c.id_compra
                         and tipo != 'compra') as total_compra_cargos,
 
                         (select sum(cantidad)
-                        from pagos
+                        from {2} pg
                         where compra_id = c.id_compra
                         and validado = 1
                         and usuario_id = :id_usuario) as total_abonado_usuario,
                         (select sum(cantidad)
-                        from pagos
+                        from {2} pg
                         where compra_id = c.id_compra
                         and validado = 1
                         and tipo = 'compra'
                         and usuario_id = :id_usuario) as total_abonado_usuario_compra,
                         (select sum(cantidad)
-                        from pagos
+                        from {2} pg
                         where compra_id = c.id_compra
                         and validado = 1
                         and tipo != 'compra'
                         and usuario_id = :id_usuario) as total_abonado_usuario_cargos,
 
                         (select sum(cantidad)
-                        from pagos
+                        from {2} pg
                         where compra_id = c.id_compra
                         and validado = 1) as total_abonado,
                         (select sum(cantidad)
-                        from pagos
+                        from {2} pg
                         where compra_id = c.id_compra
                         and validado = 1
                         and tipo = 'compra') as total_abonado_compra,
                         (select sum(cantidad)
-                        from pagos
+                        from {2} pg
                         where compra_id = c.id_compra
                         and validado = 1
                         and tipo != 'compra') as total_abonado_cargos,
 
                         (select min(fecha_limite)
-                        from cargos
+                        from {1} cg
                         where compra_id = c.id_compra
-                        and usuario_id = :id_usuario) as fecha_limite
-                    from (SELECT *
-                    FROM compras
-                    WHERE creado_por = :id_usuario
-                    AND not oculto
-                    AND nvl(status_compra, 'pendiente') != 'entregado') c
-                    ORDER BY c.fecha_compra DESC """
+                        and tipo='compra') as fecha_limite
+                    from (SELECT c.*
+                    FROM {3} c
+                    WHERE creado_por = :id_usuario) c
+                    
+                    ORDER BY c.fecha_compra DESC
+                    """.format(self.det_query, self.cargo_query, self.pago_query, self.compra_query)
             query_data = {
                 "id_usuario": self.id_usuario,
             }
@@ -1256,4 +1556,5 @@ vs
 SV
 need funa
 """
+
 

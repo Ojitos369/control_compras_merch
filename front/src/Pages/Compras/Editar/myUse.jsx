@@ -8,6 +8,9 @@ const useVars = props => {
 
     // ---------------------------------------------   FUNCTIONS   --------------------------------------------- #
     const guardando = useMemo(() => s.loadings?.compras?.guardarCompra, [s.loadings?.compras?.guardarCompra]);
+    const compraData = useMemo(() => s.compras?.consulta?.compraData || {}, [s.compras?.consulta?.compraData]);
+    const imgLink = useMemo(() => s.general?.imagesLink || '', [s.general?.imagesLink]);
+
     const images = useMemo(() => s.compras?.actualCompra?.form?.images || [], [s.compras?.actualCompra?.form?.images]);
     const total = useMemo(() => s.compras?.actualCompra?.form?.total || 0, [s.compras?.actualCompra?.form?.total]);
     const actualImage = useMemo(() => s.compras?.actualCompra?.actualImage, [s.compras?.actualCompra?.actualImage]);
@@ -59,6 +62,7 @@ const useVars = props => {
             fields.forEach(f => {
                 item[f.name] = d[f.name] || (f.default ?? null);
             });
+            if (!!d.id_compra_det) item.id_compra_det = d.id_compra_det;
             return item;
         });
 
@@ -68,6 +72,7 @@ const useVars = props => {
 
         return {items, totalItems};
     }, [s.compras?.actualCompra?.form?.items]);
+    // console.log('items', items);
 
     const keyExec = useMemo(() => {
         const keysCompras = Object.keys(s.modals?.compras || {});
@@ -82,6 +87,12 @@ const useVars = props => {
 
 
     // ---------------------------------------------   FUNCTIONS   --------------------------------------------- #
+    const deleteActualImage = e => {
+        if (!!e) e.preventDefault();
+        // actualImage.id_image
+        f.compras.eliminarImagen(actualImage.id_image, setActualImage);
+    }
+
     const validaMK = e => {
         let thisKeys = f.cloneO(keys);
         const actual = e.key.toLowerCase();
@@ -151,15 +162,15 @@ const useVars = props => {
     }
 
     return { 
-        compra_id, 
+        compra_id, compraData, 
         guardando, valid, fields, 
         generalFields, upgradeGeneralData, 
         items, totalItems, 
         images, actualImage, 
-        keyExec, validaMK, 
+        keyExec, validaMK, deleteActualImage, 
         save, addNew, upgradeData, removeItem, 
         setActualImage, cambiarImage, clickInput, 
-        total, 
+        total, imgLink, 
     }
 }
 
@@ -167,24 +178,14 @@ const useVars = props => {
 const useMyEffects = props => {
     const { f } = useStates();
     const { 
-        compra_id, 
+        compra_id, compraData, imgLink, 
         images, actualImage, cambiarImage, setActualImage, items
     } = useVars();
 
     useEffect(() => {
-        const id = f.general.getUuid();
-        f.u2('compras', 'actualCompra', 'form', {id});
-        f.u3('compras', 'actualCompra', 'form', 'images', null);
         f.u1('shortCuts', 'keys', {});
         f.compras.validarImagenesNoGuardadas();
-
-        const idName = 'nombre_compra';
-        const input = document.getElementById(idName);
-        if (!!input) {
-            input.focus();
-        }
     }, []);
-
 
     useEffect(() => {
         if (images.length > 0 && !actualImage) {
@@ -207,6 +208,39 @@ const useMyEffects = props => {
     useEffect(()  => {
         f.compras.getCompra(compra_id);
     }, [compra_id]);
+
+    useEffect(() => {
+        console.log('compraData', compraData);
+        if (!Object.keys(compraData).length) {
+            f.u1('compras', 'actualCompra', null);
+            return;
+        };
+
+        const { articulos, imagenes, compra } = compraData;
+        const { id_compra, nombre_compra, descripcion_compra, link, origen, total } = compra;
+        let fecha_limite;
+        if (!!compra.fecha_limite) { 
+            fecha_limite = compra.fecha_limite.split('T')[0];
+        }
+        let images = [];
+        if (imagenes) {
+            images = imagenes.map((img, index) => {
+                const name = img.filename;
+                const url = `${imgLink}/${compra_id}/preview/${name}`;
+                return {
+                    index, url, name, id_image: img.id_imagen
+                }
+            });
+        }
+        const items = articulos.map(a => {
+            const { usuario, descripcion: descripcion_compra, cantidad, precio, id_compra_det } = a;
+            return { usuario, descripcion_compra, cantidad, precio, id_compra_det };
+        });
+        const compraActual = {
+            id: id_compra, nombre_compra, descripcion_compra, link, origen, fecha_limite, total, items, images
+        }
+        f.u2('compras', 'actualCompra', 'form', compraActual);
+    }, [compraData]);
 }
 
 

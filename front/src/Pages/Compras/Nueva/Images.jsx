@@ -1,5 +1,6 @@
 import { useVars } from "./myUse";
 import { DeleteButton } from "../../../Components/Buttons";
+
 const Images = props => {
     const { f, styles } = props;
     const { images, actualImage, cambiarImage, clickInput, deleteActualImage } = useVars();
@@ -37,13 +38,13 @@ const Images = props => {
                     <button className={`${styles.images_change} w-1/3`} onClick={() => cambiarImage(actualImage.index - 1)}>
                         Anterior
                     </button>
-                    <button 
+                    <div 
                         className={`${styles.image_delete} w-1/6`} 
                         onClick={deleteActualImage}
                         data-tooltip-id="global" data-tooltip-content="Delete Image"
                         >
                         <DeleteButton />
-                    </button>
+                    </div>
                     <button className={`${styles.images_change} w-1/3`} onClick={() => cambiarImage(actualImage.index + 1)}>
                         Siguiente
                     </button>

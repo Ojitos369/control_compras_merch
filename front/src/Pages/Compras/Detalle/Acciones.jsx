@@ -44,7 +44,7 @@ const Acciones = props => {
             {creadorCompra && 
             <div className={`${styles.actionDiv}`}>
                 <Link 
-                    data-tooltip-id="global" data-tooltip-content="Revisar Pagos Alt+E"
+                    data-tooltip-id="global" data-tooltip-content="Editar Compra Alt+E"
                     className={`${styles.actionIcon}`}
                     to={`/compras/editar/${compra_id}`} >
                     <Edit />

@@ -47,6 +47,14 @@ const Generales = props => {
             </div>
             <div className={`${styles.totalContainer}`}>
                 <p className={`${styles.totalLabel}`}>
+                    Resta Compra:
+                </p>
+                <p className={`${styles.total}`}>
+                    {showCurrency(cargosCompraTotal-pagosCompraTotal)}
+                </p>
+            </div>
+            <div className={`${styles.totalContainer}`}>
+                <p className={`${styles.totalLabel}`}>
                     Cargos:
                 </p>
                 <p className={`${styles.total}`}>
@@ -55,10 +63,26 @@ const Generales = props => {
             </div>
             <div className={`${styles.totalContainer}`}>
                 <p className={`${styles.totalLabel}`}>
+                    Resta Cargos:
+                </p>
+                <p className={`${styles.total}`}>
+                    {showCurrency(cargosExtraTotal-pagosExtraTotal)}
+                </p>
+            </div>
+            <div className={`${styles.totalContainer}`}>
+                <p className={`${styles.totalLabel}`}>
                     Total:
                 </p>
                 <p className={`${styles.total}`}>
                     {showCurrency(pagosTotal)}/{showCurrency(cargosTotal)}
+                </p>
+            </div>
+            <div className={`${styles.totalContainer}`}>
+                <p className={`${styles.totalLabel}`}>
+                    Resta Total:
+                </p>
+                <p className={`${styles.total}`}>
+                    {showCurrency(cargosTotal-pagosTotal)}
                 </p>
             </div>
             <div className={`${styles.totalContainer}`}>

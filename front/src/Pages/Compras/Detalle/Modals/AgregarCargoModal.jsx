@@ -68,6 +68,14 @@ const Component = props => {
                 </div>
                 <div className="w-full"></div>
 
+                <hr 
+                    style={{
+                        margin: '30px 0',
+                        border: '2px solid var(--my-minor)',
+                        width: '100%',
+                    }}
+                />
+
                 {usuarios.map((usuario, index) => {
                     const cantidad = (total || perUser[usuario.compra_det_id]) ? (perUser[usuario.compra_det_id] ?? Number(usuario.porcentaje * total / 100).toFixed(2)) : 0;
                     const user = usuario.usuario;
@@ -88,7 +96,7 @@ const Component = props => {
                     )
                 })}
 
-                <div className={`${styles.resumeDiv}`}>
+                <div className={`${styles.resumeDiv} w-full text-center`}>
                     Total Real: {showCurrency(totalNewCargoFinal)}
                 </div>
 

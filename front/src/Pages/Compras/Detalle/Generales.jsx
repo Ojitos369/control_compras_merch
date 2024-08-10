@@ -2,7 +2,12 @@ import { useVars } from "./myUse";
 import { showCurrency, showDate } from "../../../Core/helper";
 
 const Generales = props => {
-    const { styles, compra, pagosExtraTotal, cargosExtraTotal, pagosTotal, cargosTotal, convertLink } = useVars();
+    const { styles, 
+        compra, pagosExtraTotal, cargosExtraTotal, 
+        pagosTotal, cargosTotal, convertLink, usuariosUnicos, 
+        filtroUser, actualizarFiltroUser,
+        cargosCompraTotal, pagosCompraTotal, 
+    } = useVars();
     const { descripcion_compra, fecha_compra, link, nombre_compra, origen, fecha_limite, total, total_abonado=0 } = compra;
 
     return (
@@ -37,7 +42,7 @@ const Generales = props => {
                     Compra:
                 </p>
                 <p className={`${styles.total}`}>
-                    {showCurrency(total_abonado)}/{showCurrency(total)}
+                    {showCurrency(pagosCompraTotal)}/{showCurrency(cargosCompraTotal)}
                 </p>
             </div>
             <div className={`${styles.totalContainer}`}>
@@ -55,6 +60,26 @@ const Generales = props => {
                 <p className={`${styles.total}`}>
                     {showCurrency(pagosTotal)}/{showCurrency(cargosTotal)}
                 </p>
+            </div>
+            <div className={`${styles.totalContainer}`}>
+                <p className={`${styles.totalLabel}`}>
+                    Filtrar por:
+                </p>
+                <select 
+                    className="text-black"
+                    value={filtroUser} 
+                    onChange={e => actualizarFiltroUser(e.target.value)}>
+                    <option value="">Todos</option>
+                    {usuariosUnicos.map(u => {
+                        return (
+                            <option 
+                                key={u.id_usuario}
+                                value={u.id_usuario}>
+                                {u.usuario}
+                            </option>
+                        )
+                    })}
+                </select>
             </div>
         </div>
     )

@@ -353,6 +353,12 @@
                 }
                 .acInputElement {
                     padding: 0 15px;
+                    margin-bottom: 20px;
+                    font-size: 12px;
+                    display: flex;
+                    justify-content: start;
+                    align-items: end;
+                    flex-wrap: wrap;
                     .acLabel {
                         width: 100%;
                         text-align: start;

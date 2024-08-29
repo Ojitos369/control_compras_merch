@@ -709,13 +709,13 @@ class GetCompra(GetApi):
                             FROM compras_det
                             WHERE not oculto
                             AND nvl(status_articulo, 'pendiente') not in ('entregado', 'cancelado')) """
-        self.cargo_query = """(SELECT cr.*
+        self.cargo_query = """(SELECT cr.*, cd.descripcion descripcion
                             FROM cargos cr,
                                 compras_det cd
                             WHERE cr.compra_det_id = cd.id_compra_det
                             AND not cd.oculto
                             AND nvl(cd.status_articulo, 'pendiente') not in ('entregado', 'cancelado')) """
-        self.pago_query = """(SELECT pg.*
+        self.pago_query = """(SELECT pg.*, cd.descripcion descripcion
                             FROM pagos pg,
                                 compras_det cd
                             WHERE pg.compra_det_id = cd.id_compra_det

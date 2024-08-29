@@ -38,12 +38,20 @@ const Pagos = props => {
                     <table className={`${styles.table} table table-auto`}>
                         <thead>
                             <tr>
-                            <th className='text-start table-header' scope="col">
+                                <th className='text-start table-header' scope="col">
                                     <button className='w-full m-0 bg-[#788] px-3 py-1 rounded-lg whitespace-nowrap'
                                         onClick={() => {
                                             order('usuario');
                                         }}>
                                         Usuario {validarOrdenTable('usuario')}
+                                    </button>
+                                </th>
+                                <th className='text-start table-header' scope="col">
+                                    <button className='w-full m-0 bg-[#788] px-3 py-1 rounded-lg whitespace-nowrap'
+                                        onClick={() => {
+                                            order('descripcion');
+                                        }}>
+                                        Descripcion {validarOrdenTable('descripcion')}
                                     </button>
                                 </th>
                                 <th className='text-start table-header' scope="col">
@@ -119,12 +127,15 @@ const Pagos = props => {
 const ShowElement = props => {
     const { ele, index, styles, compra_id, imgLink } = props;
     const par = index % 2 === 0;
-    const { cantidad, tipo, fecha_pago, fecha_validado, usuario, validado, comprobante } = ele;
+    const { cantidad, tipo, fecha_pago, fecha_validado, usuario, validado, comprobante, descripcion } = ele;
     const link = comprobante ? `${imgLink}/${compra_id}/comprobantes/${comprobante}` : '';
     return (
         <tr className={`${styles[par ? 'par' : 'impar']}`}>
             <td>
                 { usuario }
+            </td>
+            <td>
+                { descripcion }
             </td>
             <td>
                 { tipo }

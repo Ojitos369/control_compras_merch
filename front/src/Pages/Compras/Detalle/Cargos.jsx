@@ -50,6 +50,14 @@ const Cargos = props => {
                                 <th className='text-start table-header' scope="col">
                                     <button className='w-full m-0 bg-[#788] px-3 py-1 rounded-lg whitespace-nowrap'
                                         onClick={() => {
+                                            order('descripcion');
+                                        }}>
+                                        Descripcion {validarOrdenTable('descripcion')}
+                                    </button>
+                                </th>
+                                <th className='text-start table-header' scope="col">
+                                    <button className='w-full m-0 bg-[#788] px-3 py-1 rounded-lg whitespace-nowrap'
+                                        onClick={() => {
                                             order('tipo');
                                         }}>
                                         Tipo {validarOrdenTable('tipo')}
@@ -102,11 +110,15 @@ const Cargos = props => {
 const ShowElement = props => {
     const { ele, index, styles } = props;
     const par = index % 2 === 0;
-    const { fecha_cargo, fecha_limite, tipo, total, usuario } = ele;
+    console.log(ele);
+    const { fecha_cargo, fecha_limite, tipo, total, usuario, descripcion } = ele;
     return (
         <tr className={`${styles[par ? 'par' : 'impar']}`}>
             <td>
                 { usuario }
+            </td>
+            <td>
+                { descripcion }
             </td>
             <td>
                 { tipo }

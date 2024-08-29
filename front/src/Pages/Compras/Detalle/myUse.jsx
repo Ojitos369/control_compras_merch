@@ -9,7 +9,54 @@ const useVars = props => {
     const { compra_id } = useParams();
     const navigate = useNavigate();
 
-    const { compra={}, usuarios=[], imagenes=[], articulos=[], cargos:cargosGenerales=[], pagos:pagosGenerales=[], pagos_pendientes=[] } = useMemo(() => s.compras?.consulta?.compraData || {}, [s.compras?.consulta?.compraData]);
+    const filtroUser = useMemo(() => s.compras?.consulta?.filtroUser || '', [s.compras?.consulta?.filtroUser]);
+
+    const { compra, usuarios, imagenes, articulos, cargos:cargosGenerales, pagos:pagosGenerales, pagos_pendientes } = useMemo(() => {
+        const c = s.compras?.consulta?.compraData || {};
+        let compra = c.compra || {};
+        let usuarios = c.usuarios || [];
+        let imagenes = c.imagenes || [];
+        let articulos = c.articulos || [];
+        let cargos = c.cargos || [];
+        let pagos = c.pagos || [];
+        let pagos_pendientes = c.pagos_pendientes || [];
+
+        if (!!filtroUser) {pagos
+            articulos = articulos.filter(art => art.usuario_id === filtroUser);
+            usuarios = usuarios.filter(u => u.id_usuario === filtroUser);
+            cargos = cargos.filter(cg => cg.usuario_id === filtroUser);
+            pagos = pagos.filter(pg => pg.usuario_id === filtroUser);
+            pagos_pendientes = pagos_pendientes.filter(pgp => pgp.usuario_id === filtroUser);
+
+            const total_porcentajes = usuarios.reduce((acc, e) => acc + e.porcentaje, 0)
+            usuarios = usuarios.map(u => {
+                return {
+                    ...u,
+                    porcentaje: ((u.porcentaje*100) / total_porcentajes).toFixed(2)
+                }
+            });
+        }
+        // console.log('pagos', pagos);
+        return {
+            compra, usuarios, imagenes, articulos, cargos, pagos, pagos_pendientes
+        }
+
+    }, [s.compras?.consulta?.compraData, filtroUser]);
+
+    const usuariosUnicos = useMemo(() => {
+        let users = [];
+        let added = [];
+        (s.compras?.consulta?.compraData?.usuarios || []).forEach(u => {
+            if (!added.includes(u.id_usuario)) {
+                users.push({
+                    id_usuario: u.id_usuario,
+                    usuario: u.usuario,
+                })
+                added.push(u.id_usuario);
+            }
+        });
+        return users;
+    }, [s.compras?.consulta?.compraData?.usuarios]);
 
     const imgLink = useMemo(() => s.general?.imagesLink || '', [s.general?.imagesLink]);
     const cargandoCompra = useMemo(() => s.loadings?.compras?.getCompra, [s.loadings?.compras?.getCompra]);
@@ -34,12 +81,13 @@ const useVars = props => {
         return !(compras || general);
     }, [s.modals?.compras, s.modals?.general])
 
-    const { cargosExtra, cargosCompra, cargosExtraTotal, cargosTotal } = useMemo(() => {
+    const { cargosExtra, cargosCompra, cargosExtraTotal, cargosTotal, cargosCompraTotal } = useMemo(() => {
         const cargosExtra = cargosGenerales.filter(e => e.tipo !== 'compra');
         const cargosCompra = cargosGenerales.filter(e => e.tipo === 'compra');
         const cargosExtraTotal = cargosExtra.reduce((acc, e) => acc + e.total, 0);
         const cargosTotal = cargosGenerales.reduce((acc, e) => acc + e.total, 0);
-        return { cargosExtra, cargosCompra, cargosExtraTotal, cargosTotal };
+        const cargosCompraTotal = cargosCompra.reduce((acc, e) => acc + e.total, 0);
+        return { cargosExtra, cargosCompra, cargosExtraTotal, cargosTotal, cargosCompraTotal };
     }, [cargosGenerales]);
 
     const totalNewCargoFinal = useMemo(() => {
@@ -64,12 +112,13 @@ const useVars = props => {
         }
     }, [cargoView, cargosGenerales]);
 
-    const { pagosExtra, pagosCompra, pagosExtraTotal, pagosTotal } = useMemo(() => {
+    const { pagosExtra, pagosCompra, pagosExtraTotal, pagosTotal, pagosCompraTotal } = useMemo(() => {
         const pagosExtra = pagosGenerales.filter(e => e.tipo !== 'compra');
         const pagosCompra = pagosGenerales.filter(e => e.tipo === 'compra');
         const pagosExtraTotal = (pagosExtra.filter(p => p.validado)).reduce((acc, e) => acc + e.cantidad, 0);
         const pagosTotal = (pagosGenerales.filter(p => p.validado)).reduce((acc, e) => acc + e.cantidad, 0);
-        return { pagosExtra, pagosCompra, pagosExtraTotal, pagosTotal };
+        const pagosCompraTotal = pagosCompra.reduce((acc, e) => acc + e.cantidad, 0);
+        return { pagosExtra, pagosCompra, pagosExtraTotal, pagosTotal, pagosCompraTotal };
     }, [pagosGenerales]);
 
     const totalNewPagoFinal = useMemo(() => {
@@ -207,6 +256,11 @@ const useVars = props => {
         f.u2('tables', 'orden', 'order', order);
     }
 
+    const actualizarFiltroUser = user => {
+        // s.compras?.consulta?.filtroUser
+        f.u2('compras', 'consulta', 'filtroUser', user);
+    }
+
     const editarCompra = e => {
         if (!!e) e.preventDefault();
         if (!creadorCompra) return;
@@ -239,8 +293,8 @@ const useVars = props => {
         compra_id, compra, convertLink: f.general.convertLink, creadorCompra, 
         imagenes, articulos, 
         toogleDetailView, detailView,
-        cargosExtra, cargosCompra, cargosExtraTotal, cargosTotal, 
-        pagosExtra, pagosCompra, pagosExtraTotal, pagosTotal, 
+        cargosExtra, cargosCompra, cargosExtraTotal, cargosTotal, cargosCompraTotal, 
+        pagosExtra, pagosCompra, pagosExtraTotal, pagosTotal, pagosCompraTotal, 
         pagos_pendientes, 
         cargoView, changeCargoView, 
         cargoListView, cargoTotalView, 
@@ -258,6 +312,7 @@ const useVars = props => {
         ordenar, validarOrdenTable: f.general.tables.validarOrden, 
         revisarPagos, validarPago, 
         editarCompra, eliminarCompra, 
+        filtroUser, actualizarFiltroUser, usuariosUnicos, 
     }
 }
 

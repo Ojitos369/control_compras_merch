@@ -1045,8 +1045,8 @@ class GuardarCargo(PostApi):
             if compra_det_id in perUser:
                 query_data["total"] = float(perUser[compra_det_id])
             else:
-                porcentaje = user["porcentaje"]
-                query_data["total"] = float(total) * porcentaje / 100
+                porcentaje = float(user["porcentaje"])
+                query_data["total"] = round(float(total) * porcentaje / 100, 2)
 
             if not(self.conexion.ejecutar(query, query_data)):
                 self.conexion.rollback()
@@ -1191,8 +1191,8 @@ class GuardarPago(PostApi):
             if compra_det_id in perUser:
                 query_data["cantidad"] = float(perUser[compra_det_id])
             else:
-                porcentaje = user["porcentaje"]
-                query_data["cantidad"] = float(total) * porcentaje / 100
+                porcentaje = float(user["porcentaje"])
+                query_data["cantidad"] = round(float(total) * porcentaje / 100, 2)
 
             if not(self.conexion.ejecutar(query, query_data)):
                 self.conexion.rollback()
@@ -1334,7 +1334,7 @@ class GuardarPago(PostApi):
 
             mail = GeneralTextMail(email_subject=email_subject, email_text=email_text, to_email=to_email)
             mail.send()
-            
+
 
 class ValidarPago(PostApi):
     def main(self):

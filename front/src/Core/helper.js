@@ -66,7 +66,7 @@ const showDate = (date, showTime) => {
 }
 
 const showNumber = (value, decimals) => {
-    decimals = decimals || 3;
+    decimals = decimals || 2;
     // separe with commas
     value = parseFloat(value || 0);
     value = value.toFixed(decimals);

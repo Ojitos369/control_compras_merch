@@ -47,7 +47,7 @@ const useVars = props => {
         const total = newCargo.total ?? 0;
         let totalFinal = 0;
         usuarios.map(usuario => {
-            const cantidad = (total || perUser[usuario.compra_det_id]) ? (perUser[usuario.compra_det_id] ?? Number(usuario.porcentaje * total / 100).toFixed(2)) : 0;
+            const cantidad = (total || perUser[usuario.compra_det_id]) ? (perUser[usuario.compra_det_id] ?? Number(usuario.porcentaje * total / 100)) : 0;
             totalFinal += Number(cantidad);
         });
         return totalFinal;
@@ -77,7 +77,7 @@ const useVars = props => {
         const total = newPago.total ?? 0;
         let totalFinal = 0;
         usuarios.map(usuario => {
-            const cantidad = (total || perUser[usuario.compra_det_id]) ? (perUser[usuario.compra_det_id] ?? Number(usuario.porcentaje * total / 100).toFixed(2)) : 0;
+            const cantidad = (total || perUser[usuario.compra_det_id]) ? (perUser[usuario.compra_det_id] ?? Number(usuario.porcentaje * total / 100)) : 0;
             totalFinal += Number(cantidad);
         });
         return totalFinal;
@@ -277,7 +277,7 @@ const useMyEffects = props => {
     //     let total = 0;
     //     usuarios.map(u => {
     //         const { perUser={} } = newCargo;
-    //         const value = perUser[u.id_usuario] ?? Number(u.porcentaje * newCargo.total / 100).toFixed(2);
+    //         const value = perUser[u.id_usuario] ?? Number(u.porcentaje * newCargo.total / 100);
     //         total += Number(value);
     //     });
     //     const abs = Math.abs(total - newCargo.total);

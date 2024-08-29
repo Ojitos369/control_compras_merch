@@ -250,7 +250,7 @@ class GuardarCompra(PostApi):
             for item in self.data["items"]:
                 user = item["usuario"].lower()
                 usuario_id = self.usuarios_ids[user] if user in self.usuarios_ids else self.user["id_usuario"]
-                total_precio = round(float(item["precio"]) * float(item["cantidad"]), 2)
+                total_precio = float(item["precio"]) * float(item["cantidad"])
                 id_compra_det = str(uuid.uuid4())
 
                 query_data = {
@@ -264,7 +264,7 @@ class GuardarCompra(PostApi):
                 }
                 if usuario_id not in self.totales_usuario:
                     self.totales_usuario[usuario_id] = 0
-                self.totales_usuario[usuario_id] += round(float(item["precio"]) * float(item["cantidad"]), 2)
+                self.totales_usuario[usuario_id] += float(item["precio"]) * float(item["cantidad"])
 
                 if not(self.conexion.ejecutar(query, query_data)):
                     self.conexion.rollback()
@@ -301,7 +301,7 @@ class GuardarCompra(PostApi):
                 self.conexion.commit()
                 
                 id_compra_usuario = str(uuid.uuid4())
-                porcentaje = round(total_precio / self.data["total"] * 100, 2)
+                porcentaje = total_precio / self.data["total"] * 100
 
                 query_data = {
                     "id_compra_usuario": id_compra_usuario,
@@ -331,7 +331,7 @@ class GuardarCompra(PostApi):
             for item in self.data["items"]:
                 user = item["usuario"].lower()
                 usuario_id = self.usuarios_ids[user] if user in self.usuarios_ids else self.user["id_usuario"]
-                total_precio = round(float(item["precio"]) * float(item["cantidad"]), 2)
+                total_precio = float(item["precio"]) * float(item["cantidad"])
                 id_compra_det = get_d(item, "id_compra_det", default=str(uuid.uuid4()))
                 
                 if id_compra_det not in compras_dets_ids:
@@ -346,7 +346,7 @@ class GuardarCompra(PostApi):
                     }
                     if usuario_id not in self.totales_usuario:
                         self.totales_usuario[usuario_id] = 0
-                    self.totales_usuario[usuario_id] += round(float(item["precio"]) * float(item["cantidad"]), 2)
+                    self.totales_usuario[usuario_id] += float(item["precio"]) * float(item["cantidad"])
 
                     if not(self.conexion.ejecutar(query, query_data)):
                         self.conexion.rollback()
@@ -383,7 +383,7 @@ class GuardarCompra(PostApi):
                     self.conexion.commit()
                     
                     id_compra_usuario = str(uuid.uuid4())
-                    porcentaje = round(total_precio / self.data["total"] * 100, 2)
+                    porcentaje = total_precio / self.data["total"] * 100
 
                     query_data = {
                         "id_compra_usuario": id_compra_usuario,
@@ -474,7 +474,7 @@ class GuardarCompra(PostApi):
                             raise Exception("Error al actualizar el kardex")
                         self.conexion.commit()
                         
-                        porcentaje = round(total_precio / self.data["total"] * 100, 2)
+                        porcentaje = total_precio / self.data["total"] * 100
                         qt = """UPDATE compras_usuarios
                                 SET usuario_id = :usuario_id,
                                     total_correspondiente = :total_correspondiente,
@@ -1046,7 +1046,7 @@ class GuardarCargo(PostApi):
                 query_data["total"] = float(perUser[compra_det_id])
             else:
                 porcentaje = user["porcentaje"]
-                query_data["total"] = round(float(total) * porcentaje / 100, 2)
+                query_data["total"] = float(total) * porcentaje / 100
 
             if not(self.conexion.ejecutar(query, query_data)):
                 self.conexion.rollback()
@@ -1192,7 +1192,7 @@ class GuardarPago(PostApi):
                 query_data["cantidad"] = float(perUser[compra_det_id])
             else:
                 porcentaje = user["porcentaje"]
-                query_data["cantidad"] = round(float(total) * porcentaje / 100, 2)
+                query_data["cantidad"] = float(total) * porcentaje / 100
 
             if not(self.conexion.ejecutar(query, query_data)):
                 self.conexion.rollback()

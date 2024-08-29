@@ -68,7 +68,7 @@ const Component = props => {
                 <div className="w-full"></div>
 
                 {usuarios.map((usuario, index) => {
-                    const cantidad = (total || perUser[usuario.compra_det_id]) ? (perUser[usuario.compra_det_id] ?? Number(usuario.porcentaje * total / 100).toFixed(2)) : 0;
+                    const cantidad = (total || perUser[usuario.compra_det_id]) ? (perUser[usuario.compra_det_id] ?? Number(usuario.porcentaje * total / 100)) : 0;
                     const user = usuario.usuario;
                     return (
                         <div className={`${styles.acFormRow}`} key={`perUser_${index}`}>

@@ -5,6 +5,7 @@ import uuid
 import datetime
 
 from ojitos369.utils import print_json as pj
+import pandas as pd
 # User
 from app.core.bases.apis import PostApi, GetApi, get_d, pln
 from app.core.bases.correos import GeneralTextMail
@@ -80,8 +81,7 @@ class ValidarImagenesNoGuardadas(GetApi):
         images = self.conexion.consulta_asociativa(query, query_data)
         
         # ids = [i["id_imagen"] for i in images]
-        for image in images:
-            ruta = image["ruta"]
+        def clean_images(ruta):
             if os.path.exists(ruta):
                 os.remove(ruta)
             
@@ -93,7 +93,8 @@ class ValidarImagenesNoGuardadas(GetApi):
             files = os.listdir(f'{STATIC_DIR}/compras/{compra}')
             if not files:
                 os.rmdir(f'{STATIC_DIR}/compras/{compra}')
-            
+        images["ruta"].apply(clean_images)
+
         query = """DELETE FROM imagenes
                 WHERE usuario_id = :usuario_id AND estatus = 'pendiente' """
         query_data = {
@@ -120,8 +121,8 @@ class GuardarCompra(PostApi):
         self.guardar_detalles()
         try:
             self.enviar_correo()
-        except:
-            pass
+        except Exception as e:
+            print(e)
 
     def validar_existente(self):
         query = """SELECT id_compra
@@ -131,20 +132,23 @@ class GuardarCompra(PostApi):
             "id_compra": self.id_compra,
         }
         r =  self.conexion.consulta_asociativa(query, query_data)
-        self.existe_compra = bool(r)
-                    
+        self.existe_compra = not r.empty
+
     def get_usuarios(self):
         usuarios = [i["usuario"].lower() for i in self.data["items"]]
         usuarios = list(set(usuarios))
+
         query = """SELECT id_usuario, usuario FROM usuarios
                 WHERE lower(usuario) IN :usuarios """
         query_data = {
             "usuarios": tuple(usuarios),
         }
-        usuarios = self.conexion.consulta_asociativa(query, query_data)
-        self.usuarios_ids = {i["usuario"].lower(): i["id_usuario"] for i in usuarios}
-        self.usuarios_anteriores = {}
-        self.totales_usuario = {usuario: 0 for usuario in self.usuarios_ids.values()}
+        self.usuarios = self.conexion.consulta_asociativa(query, query_data)
+        print("self.usuarios")
+        print(self.usuarios)
+        # self.usuarios_ids = {i["usuario"].lower(): i["id_usuario"] for i in self.usuarios.loc}
+        self.usuarios_anteriores = pd.DataFrame()
+        self.totales_usuario = {usuario: 0 for usuario in self.usuarios["id_usuario"].to_list()}
         
         if self.existe_compra:
             query = """SELECT cd.usuario_id, u.usuario
@@ -156,10 +160,9 @@ class GuardarCompra(PostApi):
                         """
             query_data = {
                 "id_compra": self.id_compra,
-                "usuarios": tuple(self.usuarios_ids.values()),
+                "usuarios": tuple(self.usuarios["id_usuario"].to_list()),
             }
-            r = self.conexion.consulta_asociativa(query, query_data)
-            self.usuarios_anteriores = {i["usuario"]: i["usuario_id"] for i in r}
+            self.usuarios_anteriores = self.conexion.consulta_asociativa(query, query_data)
 
     def guardar_compra(self):
         if not self.existe_compra:
@@ -249,7 +252,10 @@ class GuardarCompra(PostApi):
 
             for item in self.data["items"]:
                 user = item["usuario"].lower()
-                usuario_id = self.usuarios_ids[user] if user in self.usuarios_ids else self.user["id_usuario"]
+                # usuario_id = self.usuarios_ids[user] if user in self.usuarios_ids else self.user["id_usuario"]
+                usuario_id = self.usuarios[self.usuarios["id_usuario"] == user]["id_usuario"].to_list()
+                usuario_id = usuario_id[0] if usuario_id else self.user["id_usuario"]
+
                 total_precio = float(item["precio"]) * float(item["cantidad"])
                 id_compra_det = str(uuid.uuid4())
 
@@ -325,12 +331,15 @@ class GuardarCompra(PostApi):
                 "id_compra": self.id_compra,
             }
             r = self.conexion.consulta_asociativa(qt, qd)
-            compras_dets_ids = [r["id_compra_det"] for r in r]
-            info_anterior = {r["id_compra_det"]: r for r in r}
+            compras_dets_ids = r["id_compra_det"].to_list()
+            info_anterior = r.set_index("id_compra_det").to_dict(orient='index')
 
             for item in self.data["items"]:
                 user = item["usuario"].lower()
-                usuario_id = self.usuarios_ids[user] if user in self.usuarios_ids else self.user["id_usuario"]
+                # usuario_id = self.usuarios_ids[user] if user in self.usuarios_ids else self.user["id_usuario"]
+                usuario_id = self.usuarios[self.usuarios["usuario"] == user]["id_usuario"].to_list()
+                usuario_id = usuario_id[0] if usuario_id else self.user["id_usuario"]
+
                 total_precio = float(item["precio"]) * float(item["cantidad"])
                 id_compra_det = get_d(item, "id_compra_det", default=str(uuid.uuid4()))
                 
@@ -525,7 +534,7 @@ class GuardarCompra(PostApi):
                 FROM usuarios u
                 WHERE u.id_usuario IN :usuarios """
         query_data = {
-            "usuarios": tuple(self.usuarios_ids.values()) + tuple(self.usuarios_anteriores.values()),
+            "usuarios": tuple(self.usuarios["id_usuario"].tolist() if not self.usuarios.empty else []) + tuple(self.usuarios_anteriores["id_usuario"].tolist() if not self.usuarios_anteriores.empty else []),
         }
         usuarios = self.conexion.consulta_asociativa(query, query_data)
 
@@ -536,7 +545,7 @@ class GuardarCompra(PostApi):
             "id_usuario": self.user["id_usuario"],
         }
         r = self.conexion.consulta_asociativa(query, query_data)
-        creador = r[0]
+        creador = r.loc[0]
 
         nombre_compra = self.data["nombre_compra"]
         descripcion_compra = self.data["descripcion_compra"]
@@ -556,7 +565,8 @@ class GuardarCompra(PostApi):
         email_text += f"Link: {link}\n\n"
         email_text += f"Puedes consultar los detalles aqui: {url_base}/#/compras/detalle/{self.id_compra}\n\n"
 
-        to_email = [i["correo"] for i in usuarios if i["correo"]]
+        # to_email = [i["correo"] for i in usuarios if i["correo"]]
+        to_email = usuarios[usuarios["correo"].notnull()]["correo"].to_list()
         if not to_email:
             return
 
@@ -580,13 +590,13 @@ class GetCompra(GetApi):
         
         self.response = {
             "compra": {
-                "compra": self.compra,
-                "imagenes": self.imagenes,
-                "articulos": self.compras_det,
-                "cargos": self.cargos,
-                "pagos": self.pagos,
-                "usuarios": self.usuarios,
-                "pagos_pendientes": self.pagos_pendientes,
+                "compra": self.d2d(self.compra),
+                "imagenes": self.d2d(self.imagenes),
+                "articulos": self.d2d(self.compras_det),
+                "cargos": self.d2d(self.cargos),
+                "pagos": self.d2d(self.pagos),
+                "usuarios": self.d2d(self.usuarios),
+                "pagos_pendientes": self.d2d(self.pagos_pendientes),
             }
         }
         # pj(self.response)
@@ -620,10 +630,10 @@ class GetCompra(GetApi):
             "id_usuario": self.user["id_usuario"],
         }
         compra = self.conexion.consulta_asociativa(query, query_data)
-        if not compra:
+        if compra.empty:
             self.send_me_error("No se encontró la compra")
             raise self.MYE("No se encontro informacion de la compra")
-        self.compra = compra[0]
+        self.compra = compra.loc[0]
     
     def get_imagenes(self):
         query = """SELECT * FROM imagenes
@@ -655,7 +665,7 @@ class GetCompra(GetApi):
             "id_compra": self.id_compra,
         }
         self.compras_det = self.conexion.consulta_asociativa(query, query_data)
-        self.compras_det_ids = [i["id_compra_det"] for i in self.compras_det]
+        self.compras_det_ids = self.compras_det["id_compra_det"].unique()
 
     def get_cargos(self):
         query = """SELECT c.*, (select usuario from usuarios where id_usuario = c.usuario_id) as usuario
@@ -666,7 +676,7 @@ class GetCompra(GetApi):
             "id_compra": self.id_compra,
         }
         self.cargos = self.conexion.consulta_asociativa(query, query_data)
-        self.cargos_ids = [i["id_cargo"] for i in self.cargos]
+        self.cargos_ids = self.cargos["id_cargo"].unique()
 
     def get_pagos(self):
         query = """SELECT a.* , (select usuario from usuarios where id_usuario = a.usuario_id) as usuario
@@ -676,7 +686,7 @@ class GetCompra(GetApi):
             "id_compra": self.id_compra,
         }
         self.pagos = self.conexion.consulta_asociativa(query, query_data)
-        self.pagos_ids = [i["id_pago"] for i in self.pagos]
+        self.pagos_ids = self.pagos["id_pago"].unique()
     
     def get_usuarios(self):
         query = """SELECT u.usuario, cu.porcentaje, u.id_usuario, cd.descripcion, cu.compra_det_id
@@ -735,7 +745,7 @@ class GetMyCompras(GetApi):
         self.get_compras()
         
         self.response = {
-            "compras": self.compras
+            "compras": self.d2d(self.compras)
         }
 
     def queries_filteres(self):
@@ -769,13 +779,12 @@ class GetMyCompras(GetApi):
         }
         
         r = self.conexion.consulta_asociativa(query, query_data)
-        compras_ids = list(set([i["compra_id"] for i in r]))
-        self.compras_ids = list(set(compras_ids))
+        self.compras_ids = r["compra_id"].unique()
     
     def get_images(self):
         self.images = {}
         ids = self.compras_ids
-        if not self.compras_ids:
+        if not len(self.compras_ids):
             query = """SELECT c.id_compra
                     FROM {0} c
                     WHERE c.creado_por = :id_usuario """.format(self.compra_query)
@@ -783,8 +792,8 @@ class GetMyCompras(GetApi):
                 "id_usuario": self.id_usuario,
             }
             r = self.conexion.consulta_asociativa(query, query_data)
-            if r:
-                ids = [i["id_compra"] for i in r]
+            if not r.empty:
+                ids = r["id_compra"].unique()
             else:
                 return
 
@@ -794,17 +803,21 @@ class GetMyCompras(GetApi):
                 order by img.fecha_alta asc
                 """
         query_data = {
-            "compras": tuple(ids),
+            "compras": tuple(ids.tolist()),
         }
         
         images = self.conexion.consulta_asociativa(query, query_data)
-        for image in images:
-            if image["compra_id"] not in self.images:
-                self.images[image["compra_id"]] = []
-            self.images[image["compra_id"]].append(image)
+        
+        def validate_image(image):
+            compra_id = image["compra_id"]
+            if compra_id not in self.images:
+                self.images[compra_id] = []
+            self.images[compra_id].append(image.to_dict())
+
+        images.apply(validate_image, axis=1)
 
     def get_compras(self):
-        if self.compras_ids:
+        if len(self.compras_ids):
             query = """select c.*, 
                         (select count(*) 
                         from {0} cd 
@@ -890,7 +903,7 @@ class GetMyCompras(GetApi):
                     ORDER BY c.fecha_compra DESC
                 """.format(self.det_query, self.cargo_query, self.pago_query, self.compra_query)
             query_data = {
-                "compras_ids": tuple(self.compras_ids),
+                "compras_ids": tuple(self.compras_ids.tolist()),
                 "id_usuario": self.id_usuario,
             }
         else:
@@ -980,8 +993,9 @@ class GetMyCompras(GetApi):
         
         self.compras = self.conexion.consulta_asociativa(query, query_data)
         
-        for c in self.compras:
-            c["images"] = self.images.get(c["id_compra"], [])
+        # for c in self.compras:
+        #     c["images"] = self.images.get(c["id_compra"], [])
+        self.compras["images"] = self.compras["id_compra"].apply(lambda x: self.images.get(x, []))
 
 
 class GuardarCargo(PostApi):
@@ -1556,5 +1570,7 @@ vs
 SV
 need funa
 """
+
+
 
 

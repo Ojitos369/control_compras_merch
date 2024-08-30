@@ -4,6 +4,7 @@ import json
 import datetime
 from pathlib import Path
 from inspect import currentframe
+import pandas as pd
 
 # Django
 from django.utils import timezone
@@ -92,11 +93,11 @@ class BaseApi(APIView):
             "ahora": ahora,
         }
         r = self.conexion.consulta_asociativa(query, query_data)
-        if not r:
+        if r.empty:
             self.status = 401
             raise self.MYE("Sesión no válida")
         
-        if str(self.petition_ip) != str(r[0]['ip_origen']):
+        if str(self.petition_ip) != str(r.loc[0]['ip_origen']):
             self.status = 401
             raise self.MYE("Sesión no válida")
         query = """SELECT *
@@ -104,13 +105,13 @@ class BaseApi(APIView):
                     WHERE id_usuario = :usuario_id
                 """
         query_data = {
-            "usuario_id": r[0]['usuario_id'],
+            "usuario_id": r.loc[0]['usuario_id'],
         }
         r = self.conexion.consulta_asociativa(query, query_data)
-        if not r:
+        if r.empty:
             self.status = 401
             raise self.MYE("Sesión no válida")
-        self.user = r[0]
+        self.user = r.loc[0].copy()
         self.user["token"] = mi_cookie
 
     def validar_permiso(self, usuarios_validos):
@@ -135,7 +136,15 @@ class BaseApi(APIView):
         except:
             ip = 'unknown'
         self.petition_ip = ip
-    
+
+    def d2d(self, df):
+        if type(df) == pd.DataFrame:
+            return df.to_dict(orient='records') if not df.empty else []
+        elif type(df) == pd.Series:
+            return df.to_dict()
+        else:
+            return df
+
     def exec(self, request, **kwargs):
         self.request = request
         self.kwargs = kwargs
@@ -155,6 +164,7 @@ class BaseApi(APIView):
         if self.response_mode == 'blob': 
             return self.response
         elif self.response_mode == 'json':
+
             return Response(self.response, status=self.status)
 
     def send_me_error(self, msg):

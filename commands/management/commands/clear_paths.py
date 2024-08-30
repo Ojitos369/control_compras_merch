@@ -8,13 +8,13 @@ class Command(MyBaseCommand):
         
         query = """SELECT id_compra from compras """
         r = self.conexion.consulta_asociativa(query)
-        ids = [c["id_compra"] for c in r]
+        # ids = r['id_compra']
 
         check_path = "compras"
         folders = os.listdir(f"{STATIC_DIR}/{check_path}")
         
         for folder in folders:
-            if folder not in ids:
+            if r[r["id_compra"] == folder].empty:
                 print(f"Deleting: {folder}")
                 os.system(f"rm -rf {STATIC_DIR}/{check_path}/{folder}")
 

@@ -37,9 +37,9 @@ class Login(NoSession, PostApi):
         }
         
         r = self.conexion.consulta_asociativa(query, query_data)
-        if not r:
+        if r.empty:
             raise self.MYE("Error en los datos ingresados")
-        usuario = r[0]
+        usuario = r.loc[0]
         passwd_hash = usuario["passwd"]
         if not (check_password(passwd, passwd_hash)):
             raise self.MYE("Error en los datos ingresados")
@@ -49,7 +49,8 @@ class Login(NoSession, PostApi):
         
         token = generate_token(exclude=exclude)
         usuario["token"] = token
-        usuario.pop("passwd")
+        # usuario.pop("passwd")
+        del usuario["passwd"]
         
         fecha_sesion = datetime.datetime.now()
         caduca = fecha_sesion + datetime.timedelta(days=1)
@@ -79,7 +80,7 @@ class Login(NoSession, PostApi):
         self.conexion.commit()
 
         self.response = {
-            "usuario": usuario,
+            "usuario": usuario.to_dict(),
         }
 
 
@@ -109,7 +110,7 @@ class Register(NoSession, PostApi):
             "correo": correo.lower(),
         }
         r = self.conexion.consulta_asociativa(query, query_data)
-        if r:
+        if not r.empty:
             raise self.MYE("Usuario ya registrado")
         
         if correo == default:
@@ -234,9 +235,9 @@ class ValidarCuenta(NoSession, PostApi):
             "codigo": codigo,
         }
         r = self.conexion.consulta_asociativa(query, query_data)
-        if not r:
+        if r.empty:
             raise self.MYE("Código de validación incorrecto o vencido")
-        codigo = r[0]
+        codigo = r.loc[0]
 
         if codigo["fecha_vencimiento"] < datetime.datetime.now():
             raise self.MYE("Código de validación incorrecto o vencido")
@@ -281,8 +282,7 @@ class ValidarCuenta(NoSession, PostApi):
 
 class ValidarSesion(GetApi):
     def main(self):
-        user = {**self.user}
-        user.pop("passwd")
+        del self.user["passwd"]
         self.response = {
-            "usuario": user
+            "usuario": self.user.to_dict(),
         }

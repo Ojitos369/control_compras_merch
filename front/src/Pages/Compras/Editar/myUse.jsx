@@ -30,11 +30,18 @@ const useVars = props => {
         {label: 'Descripcion', name: 'descripcion_compra', type: 'text',
             required: true
         },
+        {label: 'Parte para porcentaje', name: 'cantidad_porcentaje', type: 'text',
+            required: false
+        },
         {label: 'Cantidad', name: 'cantidad', type: 'text',
             required: true
         },
         {label: 'Precio', name: 'precio', type: 'text',
             required: true
+        },
+        {label: 'Procentaje', name: 'porcentaje', type: 'text',
+            required: false,
+            readOnly: true
         },
     ], [s.login?.data?.user?.usuario]);
 
@@ -56,7 +63,7 @@ const useVars = props => {
         ]
     }, [s.compras?.actualCompra?.form])
 
-    const {items, totalItems} = useMemo(() => {
+    const {items, totalItems, totalsPercents} = useMemo(() => {
         const items = (s.compras?.actualCompra?.form?.items || []).map(d => {
             const item = {};
             fields.forEach(f => {
@@ -70,7 +77,11 @@ const useVars = props => {
             return acc + parseFloat(item.cantidad || 0);
         }, 0);
 
-        return {items, totalItems};
+        const totalsPercents = items.reduce((acc, item) => {
+            return acc + parseFloat(item.cantidad_porcentaje || 0);
+        }, 0);
+
+        return {items, totalItems, totalsPercents};
     }, [s.compras?.actualCompra?.form?.items]);
     // console.log('items', items);
 
@@ -171,6 +182,7 @@ const useVars = props => {
         save, addNew, upgradeData, removeItem, 
         setActualImage, cambiarImage, clickInput, 
         total, imgLink, 
+        totalsPercents, 
     }
 }
 
@@ -179,7 +191,8 @@ const useMyEffects = props => {
     const { f } = useStates();
     const { 
         compra_id, compraData, imgLink, 
-        images, actualImage, cambiarImage, setActualImage, items
+        images, actualImage, cambiarImage, setActualImage, items,
+        totalsPercents
     } = useVars();
 
     useEffect(() => {
@@ -233,14 +246,23 @@ const useMyEffects = props => {
             });
         }
         const items = articulos.map(a => {
-            const { usuario, descripcion: descripcion_compra, cantidad, precio, id_compra_det } = a;
-            return { usuario, descripcion_compra, cantidad, precio, id_compra_det };
+            const { usuario, descripcion: descripcion_compra, cantidad, precio, id_compra_det, porcentaje, cantidad_porcentaje } = a;
+            return { usuario, descripcion_compra, cantidad, precio, id_compra_det, porcentaje, cantidad_porcentaje };
         });
         const compraActual = {
-            id: id_compra, nombre_compra, descripcion_compra, link, origen, fecha_limite, total, items, images
+            id: id_compra, nombre_compra, descripcion_compra, link, origen, fecha_limite, total, items, images, 
         }
         f.u2('compras', 'actualCompra', 'form', compraActual);
     }, [compraData]);
+
+    useEffect(() => {
+        // f.u3('compras', 'actualCompra', 'form', 'items', newItems);
+        const newItems = items.map(item => {
+            const porcentaje = (parseFloat(item.cantidad_porcentaje || 0) / totalsPercents) * 100;
+            return {...item, porcentaje};
+        });
+        f.u3('compras', 'actualCompra', 'form', 'items', newItems);
+    }, [totalsPercents]);
 }
 
 

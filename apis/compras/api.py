@@ -244,9 +244,9 @@ class GuardarCompra(PostApi):
                 (:id_kardex, :usuario_id, :cantidad, 'compra', :tipo_id, 'Compra inicial', 'S') """
             
         query_4 = """INSERT INTO compras_usuarios
-                (id_compra_usuario, usuario_id, compra_id, compra_det_id, total_correspondiente, porcentaje)
+                (id_compra_usuario, usuario_id, compra_id, compra_det_id, total_correspondiente, porcentaje, cantidad_porcentaje)
                 VALUES
-                (:id_compra_usuario, :usuario_id, :compra_id, :compra_det_id, :total_correspondiente, :porcentaje) """
+                (:id_compra_usuario, :usuario_id, :compra_id, :compra_det_id, :total_correspondiente, :porcentaje, :cantidad_porcentaje) """
         if not self.existe_compra:
             # id_compra_det, compra_id, usuario_id, descripcion, precio, cantidad, total
 
@@ -257,7 +257,9 @@ class GuardarCompra(PostApi):
                 usuario_id = usuario_id[0] if usuario_id else self.user["id_usuario"]
 
                 total_precio = float(item["precio"]) * float(item["cantidad"])
+                porcentaje_item = item.get("porcentaje", -1)
                 id_compra_det = str(uuid.uuid4())
+                cantidad_porcentaje = item.get("cantidad_porcentaje", None)
 
                 query_data = {
                     "id_compra_det": id_compra_det,
@@ -307,7 +309,8 @@ class GuardarCompra(PostApi):
                 self.conexion.commit()
                 
                 id_compra_usuario = str(uuid.uuid4())
-                porcentaje = total_precio / self.data["total"] * 100
+
+                porcentaje = total_precio / self.data["total"] * 100 if porcentaje_item == -1 else porcentaje_item
 
                 query_data = {
                     "id_compra_usuario": id_compra_usuario,
@@ -315,7 +318,8 @@ class GuardarCompra(PostApi):
                     "compra_id": self.id_compra,
                     "compra_det_id": id_compra_det,
                     "total_correspondiente": total_precio,
-                    "porcentaje": porcentaje
+                    "porcentaje": porcentaje,
+                    "cantidad_porcentaje": cantidad_porcentaje,
                 }
                 if not(self.conexion.ejecutar(query_4, query_data)):
                     self.conexion.rollback()
@@ -323,8 +327,11 @@ class GuardarCompra(PostApi):
                 self.conexion.commit()
 
         else:
-            qt = """SELECT *
-                        FROM compras_det
+            qt = """SELECT t.*,
+                        (select cantidad_porcentaje
+                            from compras_usuarios
+                            where compra_det_id = t.id_compra_det) cantidad_porcentaje
+                        FROM compras_det t
                         WHERE compra_id = :id_compra
                         """
             qd = {
@@ -342,6 +349,7 @@ class GuardarCompra(PostApi):
 
                 total_precio = float(item["precio"]) * float(item["cantidad"])
                 id_compra_det = get_d(item, "id_compra_det", default=str(uuid.uuid4()))
+                porcentaje_item = item.get("porcentaje", -1)
                 
                 if id_compra_det not in compras_dets_ids:
                     query_data = {
@@ -392,7 +400,8 @@ class GuardarCompra(PostApi):
                     self.conexion.commit()
                     
                     id_compra_usuario = str(uuid.uuid4())
-                    porcentaje = total_precio / self.data["total"] * 100
+                    porcentaje = total_precio / self.data["total"] * 100 if porcentaje_item == -1 else porcentaje_item
+                    cantidad_porcentaje = item.get("cantidad_porcentaje", None)
 
                     query_data = {
                         "id_compra_usuario": id_compra_usuario,
@@ -400,7 +409,8 @@ class GuardarCompra(PostApi):
                         "compra_id": self.id_compra,
                         "compra_det_id": id_compra_det,
                         "total_correspondiente": total_precio,
-                        "porcentaje": porcentaje
+                        "porcentaje": porcentaje,
+                        "cantidad_porcentaje": cantidad_porcentaje,
                     }
                     if not(self.conexion.ejecutar(query_4, query_data)):
                         self.conexion.rollback()
@@ -413,7 +423,14 @@ class GuardarCompra(PostApi):
                     same_user = info["usuario_id"] == usuario_id
                     same_precio = info["precio"] == item["precio"]
                     same_cantidad = info["cantidad"] == item["cantidad"]
-                    if same_user and same_precio and same_cantidad:
+
+                    porcentaje_item = item.get("porcentaje", -1)
+                    porcentaje = total_precio / self.data["total"] * 100 if porcentaje_item == -1 else porcentaje_item
+                    cantidad_porcentaje = item.get("cantidad_porcentaje", None)
+                    
+                    same_cp = info["cantidad_porcentaje"] == cantidad_porcentaje
+
+                    if same_user and same_precio and same_cantidad and same_cp:
                         same_desc = info["descripcion"] == item["descripcion_compra"]
                         if same_desc:
                             continue
@@ -482,12 +499,12 @@ class GuardarCompra(PostApi):
                             self.conexion.rollback()
                             raise Exception("Error al actualizar el kardex")
                         self.conexion.commit()
-                        
-                        porcentaje = total_precio / self.data["total"] * 100
+
                         qt = """UPDATE compras_usuarios
                                 SET usuario_id = :usuario_id,
                                     total_correspondiente = :total_correspondiente,
-                                    porcentaje = :porcentaje
+                                    porcentaje = :porcentaje,
+                                    cantidad_porcentaje = :cantidad_porcentaje
                                 WHERE compra_det_id = :id_compra_det
                                 """
                         qd = {
@@ -495,6 +512,7 @@ class GuardarCompra(PostApi):
                             "total_correspondiente": total_precio,
                             "porcentaje": porcentaje,
                             "id_compra_det": id_compra_det,
+                            "cantidad_porcentaje": cantidad_porcentaje,
                         }
                         if not(self.conexion.ejecutar(qt, qd)):
                             self.conexion.rollback()
@@ -649,7 +667,10 @@ class GetCompra(GetApi):
         query = """SELECt t.*, (t.total - t.total_abonado) restante, 
                         (select porcentaje 
                             from compras_usuarios
-                            where compra_det_id = t.id_compra_det) porcentaje
+                            where compra_det_id = t.id_compra_det) porcentaje,
+                        (select cantidad_porcentaje 
+                            from compras_usuarios
+                            where compra_det_id = t.id_compra_det) cantidad_porcentaje
                 FROM (SELECT cd.*, 
                         u.usuario,
                         (select nvl(sum(cantidad), 0)
@@ -779,7 +800,10 @@ class GetMyCompras(GetApi):
         }
         
         r = self.conexion.consulta_asociativa(query, query_data)
-        self.compras_ids = r["compra_id"].unique()
+        if r.empty:
+            self.compras_ids = []
+        else:
+            self.compras_ids = r["compra_id"].unique()
     
     def get_images(self):
         self.images = {}
@@ -1495,11 +1519,12 @@ class EliminarCompra(PostApi):
             "compra_id": self.compra_id,
         }
         compra = self.conexion.consulta_asociativa(query, query_data)
-        if not compra:
+        if compra.empty:
             raise self.MYE("No se encontró la compra")
-        if (compra[0]["creado_por"] != self.user["id_usuario"]):
+        compra = compra.iloc[0]
+        if (compra["creado_por"] != self.user["id_usuario"]):
             raise self.MYE("No tienes permiso para realizar esta acción")
-        self.nombre_compra = compra[0]["nombre_compra"]
+        self.nombre_compra = compra["nombre_compra"]
 
     def get_usuarios(self):
         query = """SELECT usuario_id
@@ -1509,7 +1534,7 @@ class EliminarCompra(PostApi):
             "compra_id": self.compra_id,
         }
         r = self.conexion.consulta_asociativa(query, query_data)
-        self.usuarios = [i["usuario_id"] for i in r]
+        self.usuarios = r["usuario_id"].tolist()
         
     def marcar_oculto(self):
         query = """UPDATE compras
@@ -1550,13 +1575,14 @@ class EliminarCompra(PostApi):
             "id_usuario": self.user["id_usuario"],
         }
         r = self.conexion.consulta_asociativa(query, query_data)
-        creador = r[0]
+        creador = r.iloc[0]
         
         email_subject = f"Compra Cancelada"
         email_text = f"Se ha cancelado la compra {self.nombre_compra}\n"
         email_text += f"Compra cancelada por: {creador['usuario']}\n\n"
         
-        to_email = [i["correo"] for i in usuarios if i["correo"]]
+        # to_email = [i["correo"] for i in usuarios if i["correo"]]
+        to_email = usuarios["correo"].dropna().tolist()
         if not to_email:
             return
         

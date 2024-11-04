@@ -214,3 +214,4 @@ class Command(MyBaseCommand):
                 open(f'{static_dir}{name}/assets/{file_name}', 'w').write(css)
 
         pln('Done')
+

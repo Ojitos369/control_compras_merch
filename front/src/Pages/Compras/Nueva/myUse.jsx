@@ -25,11 +25,18 @@ const useVars = props => {
         {label: 'Descripcion', name: 'descripcion_compra', type: 'text',
             required: true
         },
+        {label: 'Parte para porcentaje', name: 'cantidad_porcentaje', type: 'text',
+            required: false
+        },
         {label: 'Cantidad', name: 'cantidad', type: 'text',
             required: true
         },
         {label: 'Precio', name: 'precio', type: 'text',
             required: true
+        },
+        {label: 'Procentaje', name: 'porcentaje', type: 'text',
+            required: false,
+            readOnly: true
         },
     ], [s.login?.data?.user?.usuario]);
 
@@ -51,7 +58,7 @@ const useVars = props => {
         ]
     }, [s.compras?.actualCompra?.form])
 
-    const {items, totalItems} = useMemo(() => {
+    const {items, totalItems, totalsPercents} = useMemo(() => {
         const items = (s.compras?.actualCompra?.form?.items || []).map(d => {
             const item = {};
             fields.forEach(f => {
@@ -64,7 +71,11 @@ const useVars = props => {
             return acc + parseFloat(item.cantidad || 0);
         }, 0);
 
-        return {items, totalItems};
+        const totalsPercents = items.reduce((acc, item) => {
+            return acc + parseFloat(item.cantidad_porcentaje || 0);
+        }, 0);
+
+        return {items, totalItems, totalsPercents};
     }, [s.compras?.actualCompra?.form?.items]);
 
     const keyExec = useMemo(() => {
@@ -106,14 +117,15 @@ const useVars = props => {
             newItem[f.name] = (f.default ?? null);
         });
 
-        let newItems = [...items, newItem];
+        let newItems = [newItem, ...items];
         f.u3('compras', 'actualCompra', 'form', 'items', newItems);
         
         const len = newItems.length;
-        const id = `descripcion_compra_${len - 1}`;
+        const id = `usuario_compra_0`;
         setTimeout(() => {
             const input = document.getElementById(id);
             if (!!input) input.focus();
+            if (!!input) input.select();
         }, 100);
     }
 
@@ -162,7 +174,7 @@ const useVars = props => {
         keyExec, validaMK, 
         save, addNew, upgradeData, removeItem, 
         setActualImage, cambiarImage, clickInput, deleteActualImage, 
-        total, 
+        total, totalsPercents, 
     }
 }
 
@@ -170,7 +182,8 @@ const useVars = props => {
 const useMyEffects = props => {
     const { f } = useStates();
     const { 
-        images, actualImage, cambiarImage, setActualImage, items
+        images, actualImage, cambiarImage, setActualImage, items,
+        totalsPercents
     } = useVars();
 
     useEffect(() => {
@@ -205,6 +218,15 @@ const useMyEffects = props => {
         f.u3('compras', 'actualCompra', 'form', 'total', total);
 
     }, [items]);
+
+    useEffect(() => {
+        // f.u3('compras', 'actualCompra', 'form', 'items', newItems);
+        const newItems = items.map(item => {
+            const porcentaje = (parseFloat(item.cantidad_porcentaje || 0) / totalsPercents) * 100;
+            return {...item, porcentaje};
+        });
+        f.u3('compras', 'actualCompra', 'form', 'items', newItems);
+    }, [totalsPercents]);
 }
 
 

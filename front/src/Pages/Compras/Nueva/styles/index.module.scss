@@ -100,6 +100,50 @@
                 }
             }
         }
+        .item_table {
+            width: 100%;
+            border-collapse: collapse;
+            overflow-x: auto;
+            white-space: nowrap;
+            th, td {
+                border: 1px solid var(--my-minor);
+                padding: 8px;
+                text-align: left;
+                white-space: nowrap;
+            }
+            th {
+                background-color: var(--mn);
+            }
+            .item_remove {
+                cursor: pointer;
+                display: flex;
+                justify-content: center;
+                width: 100%;
+                
+                &:hover {
+                    fill: var(--my-minor);
+                }
+
+            }
+            .item_input {
+                width: 100%;
+                padding: 5px;
+                border-radius: 8px;
+                border: 1px solid var(--my-minor);
+                &.input_invalid {
+                    border: 2px solid red;
+                    background: #fbb;
+                }
+                &.input_readonly {
+                    background: #bbb;
+                    color: #000;
+                    cursor: not-allowed;
+                }
+                &:focus {
+                    border: 2px solid var(--mn);
+                }
+            }
+        }
     }
     .resumen {
         display: flex;

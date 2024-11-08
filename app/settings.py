@@ -188,7 +188,7 @@ DB_DATA = {
     "user": os.environ.get('DB_USER', None),
     "password": os.environ.get('DB_PASS', None),
     "host": os.environ.get('DB_HOST', None),
-    "port": os.environ.get('DB_PORT', 3306),
+    "port": int(os.environ.get('DB_PORT', 3306)),
     "name": os.environ.get('DB_NAME', None),
 }
 

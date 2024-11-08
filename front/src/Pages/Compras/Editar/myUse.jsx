@@ -14,6 +14,7 @@ const useVars = props => {
     const images = useMemo(() => s.compras?.actualCompra?.form?.images || [], [s.compras?.actualCompra?.form?.images]);
     const total = useMemo(() => s.compras?.actualCompra?.form?.total || 0, [s.compras?.actualCompra?.form?.total]);
     const actualImage = useMemo(() => s.compras?.actualCompra?.actualImage, [s.compras?.actualCompra?.actualImage]);
+    const usuariosDisponibles = useMemo(() => s.general?.usuarios || [], [s.general?.usuarios]);
 
     const valid = useMemo(() => {
         const items = s.compras?.actualCompra?.form?.items || [];
@@ -67,7 +68,7 @@ const useVars = props => {
         const items = (s.compras?.actualCompra?.form?.items || []).map(d => {
             const item = {};
             fields.forEach(f => {
-                item[f.name] = d[f.name] || (f.default ?? null);
+                item[f.name] = d[f.name] ?? (f.default ?? null);
             });
             if (!!d.id_compra_det) item.id_compra_det = d.id_compra_det;
             return item;
@@ -130,14 +131,16 @@ const useVars = props => {
             newItem[f.name] = (f.default ?? null);
         });
 
-        let newItems = [...items, newItem];
+        let newItems = [newItem, ...items];
         f.u3('compras', 'actualCompra', 'form', 'items', newItems);
         
         const len = newItems.length;
-        const id = `descripcion_compra_${len - 1}`;
+        // const id = `descripcion_compra_${len - 1}`;
+        const id = `usuario_compra_0`;
         setTimeout(() => {
             const input = document.getElementById(id);
             if (!!input) input.focus();
+            if (!!input) input.select();
         }, 100);
     }
 
@@ -173,6 +176,7 @@ const useVars = props => {
     }
 
     return { 
+        usuariosDisponibles, 
         compra_id, compraData, 
         guardando, valid, fields, 
         generalFields, upgradeGeneralData, 
@@ -198,6 +202,7 @@ const useMyEffects = props => {
     useEffect(() => {
         f.u1('shortCuts', 'keys', {});
         f.compras.validarImagenesNoGuardadas();
+        f.general.getUsuarios();
     }, []);
 
     useEffect(() => {

@@ -9,6 +9,7 @@ const useVars = props => {
     const images = useMemo(() => s.compras?.actualCompra?.form?.images || [], [s.compras?.actualCompra?.form?.images]);
     const total = useMemo(() => s.compras?.actualCompra?.form?.total || 0, [s.compras?.actualCompra?.form?.total]);
     const actualImage = useMemo(() => s.compras?.actualCompra?.actualImage, [s.compras?.actualCompra?.actualImage]);
+    const usuariosDisponibles = useMemo(() => s.general?.usuarios || [], [s.general?.usuarios]);
 
     const valid = useMemo(() => {
         const items = s.compras?.actualCompra?.form?.items || [];
@@ -62,7 +63,7 @@ const useVars = props => {
         const items = (s.compras?.actualCompra?.form?.items || []).map(d => {
             const item = {};
             fields.forEach(f => {
-                item[f.name] = d[f.name] || (f.default ?? null);
+                item[f.name] = d[f.name] ?? (f.default ?? null);
             });
             return item;
         });
@@ -167,6 +168,7 @@ const useVars = props => {
     }
 
     return { 
+        usuariosDisponibles, 
         guardando, valid, fields, 
         generalFields, upgradeGeneralData, 
         items, totalItems, 
@@ -188,10 +190,11 @@ const useMyEffects = props => {
 
     useEffect(() => {
         const id = f.general.getUuid();
-        f.u2('compras', 'actualCompra', 'form', {id});
-        f.u3('compras', 'actualCompra', 'form', 'images', null);
+        f.u2('compras', 'actualCompra', 'form', {id, images: null, items: null});
+        // f.u3('compras', 'actualCompra', 'form', 'images', null);
         f.u1('shortCuts', 'keys', {});
         f.compras.validarImagenesNoGuardadas();
+        f.general.getUsuarios();
 
         const idName = 'nombre_compra';
         const input = document.getElementById(idName);

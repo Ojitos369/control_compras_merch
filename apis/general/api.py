@@ -21,3 +21,16 @@ class GetHostLink(GetApi):
     def validate_session(self):
         pass
 
+
+class GetUsuarios(GetApi):
+    def main(self):
+        # id_usuario, usuario, activo
+        query = """SELECT id_usuario, usuario
+                    FROM usuarios
+                    WHERE activo = 1
+                    """
+        rs = self.conexion.consulta_asociativa(query)
+        
+        self.response = {
+            "usuarios": self.d2d(rs)
+        }

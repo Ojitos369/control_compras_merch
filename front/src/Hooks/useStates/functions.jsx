@@ -183,6 +183,26 @@ const useF = props => {
                 u1('general', 'imagesLink', `${host}/static/compras`);
             });
         },
+        getUsuarios: () => {
+            if (s.loadings?.general?.getUsuarios) return;
+            u2('loadings', 'general', 'getUsuarios', true);
+
+            const end = 'general/get_usuarios/';
+            miAxios.get(end)
+            .then(response => {
+                const usuarios = response.data.usuarios;
+                u1('general', 'usuarios', usuarios);
+            }).catch(error => {
+                const message = error.response.data.message;
+                general.notificacion({
+                    mode: 'danger',
+                    title: 'Error al obtener usuarios',
+                    message: message || "Error al obtener usuarios"
+                });
+            }).finally(() => {
+                u2('loadings', 'general', 'getUsuarios', false);
+            });
+        },
         tables: {
             validarOrden: modo => {
                 return s.tables?.orden?.mode == modo ? (s.tables?.orden?.order == 'asc' ? '⬆️' : '⏬') : '➾'

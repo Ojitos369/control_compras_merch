@@ -33,6 +33,7 @@ class BaseApi(APIView):
     def create_conexion(self):
         self.close_conexion()
         self.conexion = ConexionMySQL(DB_DATA, ce=self.ce, send_error=True)
+        self.conexion.raise_error = True
     
     def close_conexion(self):
         try:

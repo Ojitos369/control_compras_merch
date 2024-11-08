@@ -35,15 +35,20 @@ class Login(NoSession, PostApi):
             "usuario": user.lower(),
             "correo": user.lower(),
         }
+        
+        print(query)
+        print(query_data)
 
         r = self.conexion.consulta_asociativa(query, query_data)
+        print(r)
         if r.empty:
             raise self.MYE("Error en los datos ingresados")
         usuario = r.loc[0].copy()
+        del r
         passwd_hash = usuario["passwd"]
         if not (check_password(passwd, passwd_hash)):
             raise self.MYE("Error en los datos ingresados")
-        
+
         if not usuario["validado"]:
             raise self.MYE("Usuario no validado. Revise su correo para validar su cuenta")
 

@@ -467,6 +467,25 @@ const useF = props => {
         }
     }
 
+    const gastosGrupal = {
+        getMyCompras: () => {
+            if (s.loadings?.gastosGrupal?.getMyCompras) return;
+            u2('loadings', 'gastosGrupal', 'getMyCompras', true);
+
+            const end = 'gasto_grupal/get_compras/';
+            miAxios.get(end)
+            .then(response => {
+                const compras = response.data.compras;
+                u1('gastosGrupal', 'misCompras', compras);
+            }).catch(error => {
+                const message = error.response.data.message;
+                console.log(message);
+            }).finally(() => {
+                u2('loadings', 'gastosGrupal', 'getMyCompras', false);
+            });
+        },
+    }
+
     const dd = {
         removeDragData: e => {
             if (e.dataTransfer.items) {
@@ -519,7 +538,11 @@ const useF = props => {
         d(ff.u9({f0, f1, f2, f3, f4, f5, f6, f7, f8, f9, value}));
     }
 
-    return { u0, u1, u2, u3, u4, u5, u6, u7, u8, u9, app, users, general, compras, dd, cloneO };
+    return { 
+        u0, u1, u2, u3, u4, u5, u6, u7, u8, u9, 
+        app, users, general, compras, gastosGrupal, 
+        dd, cloneO 
+    };
 }
 
 export { useF };

@@ -3,9 +3,18 @@ import styles from './styles/index.module.scss';
 import { Link } from 'react-router-dom';
 import { BuyCart } from '../../../Components/Icons';
 
+import { useStates } from '../../../Hooks/useStates';
+
 const Actions = props => {
+    const { f } = useStates();
     const options = [
-        {label: "Nueva Compra", to: "/compras/nueva", Icon: BuyCart},
+        {label: "Nueva Compra", to: "/compras/nueva", Icon: BuyCart,
+            onClick: () => {
+                const id = f.general.getUuid();
+                f.u1('compras', 'actualCompra', {form: {id}});
+            }
+        },
+        {label: "Cargo Grupal", to: "/cargo_grupal/nueva", Icon: BuyCart},
     ]
 
     return (
@@ -23,6 +32,7 @@ const Actions = props => {
                             key={i}
                             to={to}
                             className={`${styles.navElement}`}
+                            onClick={option.onClick}
                             >
                             {Icon && <span className={`${styles.icon} mr-3`}>
                                 <Icon />

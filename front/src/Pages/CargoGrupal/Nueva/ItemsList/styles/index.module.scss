@@ -3,12 +3,12 @@
     display: flex;
     flex-wrap: wrap;
     margin-bottom: 50px;
-    .filterContainer {
+    .headContainer {
         width: 100%;
         display: flex;
         justify-content: center;
         align-items: center;
-        .filterdiv {
+        .headDiv {
             width: 90%;
             display: flex;
             justify-content: start;
@@ -25,6 +25,12 @@
                     border: none;
                     border-bottom: 1px var(--my-minor) solid;
                 }
+            }
+            .resumeSelected {
+                width: 200px;
+                display: flex;
+                justify-content: center;
+                align-items: center;
             }
         }
     }
@@ -217,6 +223,21 @@
                                 margin: 0;
                                 overflow: hidden;
                                 animation: hiddeInfo 0.7s;
+                            }
+                        }
+                    }
+                    &.selected {
+                        background: var(--mn);
+                        .topSection {
+                            &::before {
+                                box-shadow: -5px -5px 0 2px var(--mn);
+                            }
+                            .border {
+                                background: var(--mn);
+                                box-shadow: -10px -10px 0 0 var(--mn);
+                                &::before {
+                                    box-shadow: -5px -5px 0 2px var(--mn);
+                                }
                             }
                         }
                     }

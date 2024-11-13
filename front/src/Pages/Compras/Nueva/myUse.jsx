@@ -59,6 +59,7 @@ const useVars = props => {
         ]
     }, [s.compras?.actualCompra?.form])
 
+    console.log("s.compras?.actualCompra?.form?.items", s.compras?.actualCompra?.form?.items);
     const {items, totalItems, totalsPercents} = useMemo(() => {
         const items = (s.compras?.actualCompra?.form?.items || []).map(d => {
             const item = {};
@@ -78,6 +79,7 @@ const useVars = props => {
 
         return {items, totalItems, totalsPercents};
     }, [s.compras?.actualCompra?.form?.items]);
+    console.log("items", items);
 
     const keyExec = useMemo(() => {
         const keysCompras = Object.keys(s.modals?.compras || {});
@@ -189,10 +191,6 @@ const useMyEffects = props => {
     } = useVars();
 
     useEffect(() => {
-        const id = f.general.getUuid();
-        f.u2('compras', 'actualCompra', 'form', {id, images: null, items: null});
-        // f.u3('compras', 'actualCompra', 'form', 'images', null);
-        f.u1('shortCuts', 'keys', {});
         f.compras.validarImagenesNoGuardadas();
         f.general.getUsuarios();
 
@@ -201,6 +199,15 @@ const useMyEffects = props => {
         if (!!input) {
             input.focus();
         }
+        // every url change
+    }, []);
+    useEffect(() => {
+        console.log("resetting");
+        const id = f.general.getUuid();
+        f.u1('compras', 'actualCompra', {form: {id}});
+        // f.u3('compras', 'actualCompra', 'form', 'images', null);
+        f.u1('shortCuts', 'keys', {});
+        // every url change
     }, []);
 
 

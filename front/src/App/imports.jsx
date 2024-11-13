@@ -21,6 +21,9 @@ import { Login as UsersLogin } from '../Pages/Users/Login';
 import { Register as UsersRegister } from '../Pages/Users/Register';
 import { ValidarCuenta as UsersValidarCuenta } from '../Pages/Users/ValidarCuenta';
 import { Account as UsersAccount } from '../Pages/Users/Account';
+// cargo grupal
+import { CargoGrupalPage } from '../Pages/CargoGrupal/CargoGrupalPage';
+import { Nueva as CargoGrupalNueva } from '../Pages/CargoGrupal/Nueva';
 
 // ------------------------------   STATES   ------------------------------ //
 import { store } from './store';
@@ -46,6 +49,7 @@ export {
     Test, 
     ComprasPage, ComprasNueva, ComprasDetalle, ComprasEditar, 
     Users, UsersLogin, UsersRegister, UsersValidarCuenta, UsersAccount, 
+    CargoGrupalPage, CargoGrupalNueva, 
     store, Provider, useStates, 
     GeneralNotification, 
     cambiarThema, 

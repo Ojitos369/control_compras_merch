@@ -7,6 +7,7 @@ import {
     Test, 
     ComprasPage, ComprasNueva, ComprasDetalle, ComprasEditar, 
     Users, UsersLogin, UsersRegister, UsersValidarCuenta, UsersAccount, 
+    CargoGrupalPage, CargoGrupalNueva, 
     store, Provider, useStates, 
     GeneralNotification, 
     cambiarThema, 
@@ -95,6 +96,11 @@ const Logged = props => {
                     {/* <Route path="validar_cuenta/:validacion" element={ <UsersValidarCuenta /> } /> */}
                 </Route>
                 {/* -----------   /Compras   ----------- */}
+
+                {/* -----------   Cargo Grupal   ----------- */}
+                <Route path="cargo_grupal" element={ <CargoGrupalPage /> } >
+                    <Route path="nueva" element={ <CargoGrupalNueva /> } />
+                </Route>
 
                 {/* -----------   404   ----------- */}
                 <Route path="*" element={<div className='text-danger h1 text-center mt-5'>404 Not Found</div>} />

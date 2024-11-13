@@ -37,3 +37,4 @@ front/*lock.*
 /static/images_c/*.*
 /static/compras/*
 
+*.ipynb

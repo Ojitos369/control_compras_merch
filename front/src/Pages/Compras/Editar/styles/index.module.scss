@@ -106,13 +106,17 @@
             overflow-x: auto;
             white-space: nowrap;
             th, td {
-                border: 1px solid var(--my-minor);
                 padding: 8px;
                 text-align: left;
                 white-space: nowrap;
             }
             th {
                 background-color: var(--mn);
+                color: black;
+                border: 1px solid black;
+            }
+            td {
+                border: 1px solid var(--my-minor);
             }
             .item_remove {
                 cursor: pointer;

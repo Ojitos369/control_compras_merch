@@ -21,7 +21,6 @@ const useVars = props => {
         })
         return compras;
     }, [s.gastosGrupal?.misCompras, comprasSelected]);
-    
 
 
     const updateForm = (key, value) => {
@@ -44,3 +43,4 @@ const useMyEffects = props => {
 }
 
 export { useVars, useMyEffects };
+

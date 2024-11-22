@@ -192,3 +192,5 @@ DB_DATA = {
     "name": os.environ.get('DB_NAME', None),
 }
 
+print("dbdata", DB_DATA)
+

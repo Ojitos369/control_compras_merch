@@ -1,3 +1,4 @@
+.env
 env
 venv
 */migrations
@@ -37,3 +38,4 @@ front/*lock.*
 /static/images_c/*.*
 /static/compras/*
 
+staticfiles

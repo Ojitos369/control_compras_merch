@@ -38,3 +38,4 @@ front/*lock.*
 /static/compras/*
 
 *.ipynb
+/media/json/*.json

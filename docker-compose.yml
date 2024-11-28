@@ -1,7 +1,7 @@
 services:
   web:
     build: .
-    command: bash -c "python manage.py runserver 0.0.0.0:8000"
+    command: bash -c "service cron start && python manage.py runserver 0.0.0.0:8000"
     container_name: ccm-py
     env_file:
       - .env
@@ -9,3 +9,11 @@ services:
       - .:/usr/src/app
     ports:
       - "8021:8000"
+    networks:
+      - ccm_net
+
+networks:
+  ccm_net:
+    external: true
+    name: ccm-net
+

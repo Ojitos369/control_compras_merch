@@ -8,7 +8,7 @@ const Articulos = props => {
 
     return (
         <div className={`${styles.items} w-11/12 flex flex-wrap mb-12 justify-around`}>
-            <h2 className="w-10/12 mt-8 px-5">Articulos <button data-tooltip-id="global" data-tooltip-content="Add Alt+A" className={`${styles.addButton} `} onClick={addNew}>Add</button></h2>
+            <h2 className="w-10/12 mt-8 px-5">Articulos [{items.length}] <button data-tooltip-id="global" data-tooltip-content="Add Alt+A" className={`${styles.addButton} `} onClick={addNew}>Add</button></h2>
             <div className="w-full overflow-x-auto mt-4">
                 <table className={`${styles.item_table}`}>
                     <thead>
@@ -44,6 +44,7 @@ const Articulos = props => {
                                                 if (field.readOnly) return;
                                                 upgradeData(index, field.name, e.target.value)
                                             }}
+                                            data-tooltip-id="global" data-tooltip-content={item[field.name] ?? ''}
                                             readOnly={field.readOnly}
                                             className={`${requerido && styles.input_invalid} ${styles.item_input} ${field.readOnly && styles.input_readonly}`}
                                         />

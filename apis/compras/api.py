@@ -115,6 +115,7 @@ class GuardarCompra(PostApi):
     def main(self):
         self.show_me()
         self.id_compra = self.data["id"]
+        print(f"Compra: {self.id_compra}")
         self.validar_existente()
         self.get_usuarios()
         self.guardar_compra()
@@ -138,7 +139,7 @@ class GuardarCompra(PostApi):
         usuarios = [i["usuario"].lower() for i in self.data["items"]]
         usuarios = list(set(usuarios))
 
-        query = """SELECT id_usuario, usuario FROM usuarios
+        query = """SELECT id_usuario, lower(usuario) usuario FROM usuarios
                 WHERE lower(usuario) IN :usuarios """
         query_data = {
             "usuarios": tuple(usuarios),
@@ -174,12 +175,12 @@ class GuardarCompra(PostApi):
             query_data = {
                 "id_compra": self.id_compra,
                 "total": self.data["total"],
-                "origen": self.data["origen"],
-                "link": self.data["link"],
+                "origen": self.data.get("origen", ""),
+                "link": self.data.get("link", ""),
                 "status_compra": "pendiente",
                 "pagado": False,
                 "nombre_compra": self.data["nombre_compra"],
-                "descripcion_compra": self.data["descripcion_compra"],
+                "descripcion_compra": self.data.get("descripcion_compra", ""),
                 "creado_por": self.user["id_usuario"],
             }
             if not(self.conexion.ejecutar(query, query_data)):
@@ -253,7 +254,9 @@ class GuardarCompra(PostApi):
             for item in self.data["items"]:
                 user = item["usuario"].lower()
                 # usuario_id = self.usuarios_ids[user] if user in self.usuarios_ids else self.user["id_usuario"]
-                usuario_id = self.usuarios[self.usuarios["id_usuario"] == user]["id_usuario"].to_list()
+                usuario_id = self.usuarios[self.usuarios["usuario"] == user]
+                usuario_id = usuario_id["id_usuario"]
+                usuario_id = usuario_id.to_list()
                 usuario_id = usuario_id[0] if usuario_id else self.user["id_usuario"]
 
                 total_precio = float(item["precio"]) * float(item["cantidad"])
@@ -286,7 +289,7 @@ class GuardarCompra(PostApi):
                     "compra_det_id": id_compra_det,
                     "compra_id": self.id_compra,
                     "total": total_precio,
-                    "fecha_limite": self.data["fecha_limite"],
+                    "fecha_limite": self.data.get("fecha_limite", None),
                 }
                 
                 if not(self.conexion.ejecutar(query_2, query_data)):
@@ -1042,12 +1045,12 @@ class GuardarCargo(PostApi):
             "compra_id": compra_id,
         }
         compra = self.conexion.consulta_asociativa(query, query_data)
-        if not compra:
+        if compra.empty:
             raise self.MYE("No se encontró la compra")
-        if (compra[0]["creado_por"] != self.user["id_usuario"]):
+        if (compra.iloc[0]["creado_por"] != self.user["id_usuario"]):
             raise self.MYE("No tienes permiso para realizar esta acción")
 
-        self.nombre_compra = compra[0]["nombre_compra"]
+        self.nombre_compra = compra.iloc[0]["nombre_compra"]
 
     def add_cargo(self):
         total = self.data.get("total", 0)
@@ -1590,11 +1593,7 @@ class EliminarCompra(PostApi):
         mail.send()
 
 """ 
-Yemen
-967 773 755 514
-vs
-SV
-need funa
+
 """
 
 

@@ -36,6 +36,7 @@ const Articulos = props => {
                                                 if (field.readOnly) return;
                                                 upgradeData(index, field.name, e.target.value)
                                             }}
+                                            data-tooltip-id="global" data-tooltip-content={item[field.name] ?? ''}
                                             readOnly={field.readOnly}
                                             className={`${requerido && styles.input_invalid} ${styles.item_input} ${field.readOnly && styles.input_readonly}`}
                                         />

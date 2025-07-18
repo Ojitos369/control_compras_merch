@@ -204,12 +204,12 @@ class GuardarCompra(PostApi):
             query_data = {
                 "id_compra": self.id_compra,
                 "total": self.data["total"],
-                "origen": self.data["origen"],
-                "link": self.data["link"],
+                "origen": self.data.get("origen", ""),
+                "link": self.data.get("link", ""),
                 "status_compra": "pendiente",
                 "pagado": False,
                 "nombre_compra": self.data["nombre_compra"],
-                "descripcion_compra": self.data["descripcion_compra"],
+                "descripcion_compra": self.data.get("descripcion_compra", ""),
                 "creado_por": self.user["id_usuario"],
             }
             if not(self.conexion.ejecutar(query, query_data)):
@@ -320,12 +320,13 @@ class GuardarCompra(PostApi):
                     "usuario_id": usuario_id,
                     "compra_id": self.id_compra,
                     "compra_det_id": id_compra_det,
-                    "total_correspondiente": total_precio,
-                    "porcentaje": porcentaje,
-                    "cantidad_porcentaje": cantidad_porcentaje,
+                    "total_correspondiente": round(float(total_precio), 6),
+                    "porcentaje": round(float(porcentaje), 6),
+                    "cantidad_porcentaje": round(float(cantidad_porcentaje), 6),
                 }
                 if not(self.conexion.ejecutar(query_4, query_data)):
                     self.conexion.rollback()
+                    print(f"CANTIDAD_PORCENTAJE:::", type(cantidad_porcentaje), cantidad_porcentaje)
                     raise Exception("Error al guardar los usuarios de la compra")
                 self.conexion.commit()
 
@@ -380,7 +381,7 @@ class GuardarCompra(PostApi):
                         "compra_det_id": id_compra_det,
                         "compra_id": self.id_compra,
                         "total": total_precio,
-                        "fecha_limite": self.data["fecha_limite"],
+                        "fecha_limite": self.data.get("fecha_limite", None),
                     }
                     
                     if not(self.conexion.ejecutar(query_2, query_data)):
@@ -528,7 +529,7 @@ class GuardarCompra(PostApi):
                     AND tipo = 'compra'
                     """
             qd = {
-                "fecha_limite": self.data["fecha_limite"],
+                "fecha_limite": self.data.get("fecha_limite", None),
                 "id_compra": self.id_compra,
             }
             if not (self.conexion.ejecutar(qt, qd)):
